@@ -7,4 +7,22 @@ layout:
 - go.kubebuilder.io/v4
 projectName: czertainly-cert-manager-issuer
 repo: github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: czertainly.com
+  group: czertainly-issuer
+  kind: Issuer
+  path: github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+  controller: true
+  domain: czertainly.com
+  group: czertainly-issuer
+  kind: ClusterIssuer
+  path: github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer/api/v1alpha1
+  version: v1alpha1
 version: "3"
