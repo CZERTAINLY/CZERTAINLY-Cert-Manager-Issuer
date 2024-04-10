@@ -76,6 +76,43 @@ lint: golangci-lint ## Run golangci-lint linter & yamllint
 lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
 	$(GOLANGCI_LINT) run --fix
 
+##@ E2E testing
+
+K8S_CLUSTER_NAME := czertainly-issuer-e2e
+CERT_MANAGER_VERSION ?= 1.11.1
+
+.PHONY: kind-cluster
+kind-cluster: ## Use Kind to create a Kubernetes cluster for E2E tests
+kind-cluster: kind
+	 ${KIND} get clusters | grep ${K8S_CLUSTER_NAME} || ${KIND} create cluster --name ${K8S_CLUSTER_NAME}
+
+.PHONY: kind-load
+kind-load: kind ## Load all the Docker images into Kind
+	${KIND} load docker-image --name ${K8S_CLUSTER_NAME} ${IMG}
+
+.PHONY: kind-export-logs
+kind-export-logs: kind ## Export Kind logs
+	${KIND} export logs --name ${K8S_CLUSTER_NAME} ${E2E_ARTIFACTS_DIRECTORY}
+
+.PHONY: deploy-cert-manager
+deploy-cert-manager: ## Deploy cert-manager in the configured Kubernetes cluster in ~/.kube/config
+	kubectl apply --filename=https://github.com/cert-manager/cert-manager/releases/download/v${CERT_MANAGER_VERSION}/cert-manager.yaml
+	kubectl wait --for=condition=Available --timeout=300s apiservice v1.cert-manager.io
+
+.PHONY: e2e
+e2e: ## Run E2E tests
+	kubectl apply --filename config/samples
+
+#	kubectl wait --for=condition=Ready --timeout=5s  issuers.czertainly-issuer.czertainly.com issuer-czertainly
+#	kubectl wait --for=condition=Ready --timeout=5s  certificaterequests.cert-manager.io issuer-czertainly
+#	kubectl wait --for=condition=Ready --timeout=5s  certificates.cert-manager.io certificate-by-issuer
+#
+#	kubectl wait --for=condition=Ready --timeout=5s  clusterissuers.czertainly-issuer.czertainly.com clusterissuer-czertainly
+#	kubectl wait --for=condition=Ready --timeout=5s  certificaterequests.cert-manager.io clusterissuer-czertainly
+#	kubectl wait --for=condition=Ready --timeout=5s  certificates.cert-manager.io certificate-by-clusterissuer
+
+	kubectl delete --filename config/samples
+
 ##@ Build
 
 .PHONY: build
@@ -145,6 +182,9 @@ undeploy: kustomize ## Undeploy controller from the K8s cluster specified in ~/.
 
 ##@ Dependencies
 
+LOCAL_OS := $(shell go env GOOS)
+LOCAL_ARCH := $(shell go env GOARCH)
+
 ## Location to install dependencies to
 LOCALBIN ?= $(shell pwd)/bin
 $(LOCALBIN):
@@ -156,12 +196,14 @@ KUSTOMIZE ?= $(LOCALBIN)/kustomize-$(KUSTOMIZE_VERSION)
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen-$(CONTROLLER_TOOLS_VERSION)
 ENVTEST ?= $(LOCALBIN)/setup-envtest-$(ENVTEST_VERSION)
 GOLANGCI_LINT = $(LOCALBIN)/golangci-lint-$(GOLANGCI_LINT_VERSION)
+KIND ?= $(LOCALBIN)/kind
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v5.3.0
 CONTROLLER_TOOLS_VERSION ?= v0.14.0
 ENVTEST_VERSION ?= release-0.17
 GOLANGCI_LINT_VERSION ?= v1.54.2
+KIND_VERSION := 0.18.0
 
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
@@ -182,6 +224,11 @@ $(ENVTEST): $(LOCALBIN)
 golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
 $(GOLANGCI_LINT): $(LOCALBIN)
 	$(call go-install-tool,$(GOLANGCI_LINT),github.com/golangci/golangci-lint/cmd/golangci-lint,${GOLANGCI_LINT_VERSION})
+
+.PHONY: kind
+kind: $(LOCALBIN) ## Download Kind locally if necessary.
+	curl -fsSL -o ${KIND} https://github.com/kubernetes-sigs/kind/releases/download/v${KIND_VERSION}/kind-${LOCAL_OS}-${LOCAL_ARCH}
+	chmod +x ${KIND}
 
 # go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
 # $1 - target path with name of binary (ideally with version)

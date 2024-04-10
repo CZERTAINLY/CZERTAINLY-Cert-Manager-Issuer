@@ -2,8 +2,8 @@ apiVersion: czertainly-issuer.czertainly.com/v1alpha1
 kind: Issuer
 metadata:
   labels:
-    app.kubernetes.io/name: czertainly-cert-manager-issuer
-    app.kubernetes.io/managed-by: kustomize
-  name: issuer-sample
+    app.kubernetes.io/name: czertainly-issuer
+  name: issuer-czertainly
 spec:
-  # TODO(user): Add fields here
+  authSecretName: "issuer-czertainly-credentials"
+  url: "http://sample-issuer.example.com/api/v1"

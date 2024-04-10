@@ -39,21 +39,6 @@ rules:
   - czertainly-issuer.czertainly.com
   resources:
   - clusterissuers
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - czertainly-issuer.czertainly.com
-  resources:
-  - clusterissuers/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - czertainly-issuer.czertainly.com
-  resources:
   - issuers
   verbs:
   - get
@@ -62,6 +47,7 @@ rules:
 - apiGroups:
   - czertainly-issuer.czertainly.com
   resources:
+  - clusterissuers/status
   - issuers/status
   verbs:
   - get

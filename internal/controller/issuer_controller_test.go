@@ -1,84 +1,364 @@
-/*
-Copyright 2024 CZERTAINLY.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package controller
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"testing"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	"k8s.io/apimachinery/pkg/api/errors"
+	logrtesting "github.com/go-logr/logr/testing"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	czertainlyissuerv1alpha1 "github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer/api/v1alpha1"
+	czertainlyissuerapi "github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer/api/v1alpha1"
+	"github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer/internal/issuer/signer"
+	issuerutil "github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer/internal/issuer/util"
 )
 
-var _ = Describe("Issuer Controller", func() {
-	Context("When reconciling a resource", func() {
-		const resourceName = "test-resource"
+type fakeHealthChecker struct {
+	errCheck error
+}
 
-		ctx := context.Background()
+func (o *fakeHealthChecker) Check() error {
+	return o.errCheck
+}
 
-		typeNamespacedName := types.NamespacedName{
-			Name:      resourceName,
-			Namespace: "default", // TODO(user):Modify as needed
-		}
-		issuer := &czertainlyissuerv1alpha1.Issuer{}
+func TestIssuerReconcile(t *testing.T) {
+	type testCase struct {
+		kind                         string
+		name                         types.NamespacedName
+		issuerObjects                []client.Object
+		secretObjects                []client.Object
+		healthCheckerBuilder         signer.HealthCheckerBuilder
+		clusterResourceNamespace     string
+		expectedResult               ctrl.Result
+		expectedError                error
+		expectedReadyConditionStatus czertainlyissuerapi.ConditionStatus
+	}
 
-		BeforeEach(func() {
-			By("creating the custom resource for the Kind Issuer")
-			err := k8sClient.Get(ctx, typeNamespacedName, issuer)
-			if err != nil && errors.IsNotFound(err) {
-				resource := &czertainlyissuerv1alpha1.Issuer{
+	tests := map[string]testCase{
+		"success-issuer": {
+			kind: "Issuer",
+			name: types.NamespacedName{Namespace: "ns1", Name: "issuer1"},
+			issuerObjects: []client.Object{
+				&czertainlyissuerapi.Issuer{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      resourceName,
-						Namespace: "default",
+						Name:      "issuer1",
+						Namespace: "ns1",
 					},
-					// TODO(user): Specify other spec details if needed.
+					Spec: czertainlyissuerapi.IssuerSpec{
+						AuthSecretName: "issuer1-credentials",
+					},
+					Status: czertainlyissuerapi.IssuerStatus{
+						Conditions: []czertainlyissuerapi.IssuerCondition{
+							{
+								Type:   czertainlyissuerapi.IssuerConditionReady,
+								Status: czertainlyissuerapi.ConditionUnknown,
+							},
+						},
+					},
+				},
+			},
+			secretObjects: []client.Object{
+				&corev1.Secret{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "issuer1-credentials",
+						Namespace: "ns1",
+					},
+				},
+			},
+			healthCheckerBuilder: func(*czertainlyissuerapi.IssuerSpec, map[string][]byte) (signer.HealthChecker, error) {
+				return &fakeHealthChecker{}, nil
+			},
+			expectedReadyConditionStatus: czertainlyissuerapi.ConditionTrue,
+			expectedResult:               ctrl.Result{RequeueAfter: defaultHealthCheckInterval},
+		},
+		"success-clusterissuer": {
+			kind: "ClusterIssuer",
+			name: types.NamespacedName{Name: "clusterissuer1"},
+			issuerObjects: []client.Object{
+				&czertainlyissuerapi.ClusterIssuer{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "clusterissuer1",
+					},
+					Spec: czertainlyissuerapi.IssuerSpec{
+						AuthSecretName: "clusterissuer1-credentials",
+					},
+					Status: czertainlyissuerapi.IssuerStatus{
+						Conditions: []czertainlyissuerapi.IssuerCondition{
+							{
+								Type:   czertainlyissuerapi.IssuerConditionReady,
+								Status: czertainlyissuerapi.ConditionUnknown,
+							},
+						},
+					},
+				},
+			},
+			secretObjects: []client.Object{
+				&corev1.Secret{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "clusterissuer1-credentials",
+						Namespace: "kube-system",
+					},
+				},
+			},
+			healthCheckerBuilder: func(*czertainlyissuerapi.IssuerSpec, map[string][]byte) (signer.HealthChecker, error) {
+				return &fakeHealthChecker{}, nil
+			},
+			clusterResourceNamespace:     "kube-system",
+			expectedReadyConditionStatus: czertainlyissuerapi.ConditionTrue,
+			expectedResult:               ctrl.Result{RequeueAfter: defaultHealthCheckInterval},
+		},
+		"issuer-kind-unrecognised": {
+			kind: "UnrecognizedType",
+			name: types.NamespacedName{Namespace: "ns1", Name: "issuer1"},
+		},
+		"issuer-not-found": {
+			name: types.NamespacedName{Namespace: "ns1", Name: "issuer1"},
+		},
+		"issuer-missing-ready-condition": {
+			name: types.NamespacedName{Namespace: "ns1", Name: "issuer1"},
+			issuerObjects: []client.Object{
+				&czertainlyissuerapi.Issuer{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "issuer1",
+						Namespace: "ns1",
+					},
+				},
+			},
+			expectedReadyConditionStatus: czertainlyissuerapi.ConditionUnknown,
+		},
+		"issuer-missing-secret": {
+			name: types.NamespacedName{Namespace: "ns1", Name: "issuer1"},
+			issuerObjects: []client.Object{
+				&czertainlyissuerapi.Issuer{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "issuer1",
+						Namespace: "ns1",
+					},
+					Spec: czertainlyissuerapi.IssuerSpec{
+						AuthSecretName: "issuer1-credentials",
+					},
+					Status: czertainlyissuerapi.IssuerStatus{
+						Conditions: []czertainlyissuerapi.IssuerCondition{
+							{
+								Type:   czertainlyissuerapi.IssuerConditionReady,
+								Status: czertainlyissuerapi.ConditionUnknown,
+							},
+						},
+					},
+				},
+			},
+			expectedError:                errGetAuthSecret,
+			expectedReadyConditionStatus: czertainlyissuerapi.ConditionFalse,
+		},
+		"issuer-failing-healthchecker-builder": {
+			name: types.NamespacedName{Namespace: "ns1", Name: "issuer1"},
+			issuerObjects: []client.Object{
+				&czertainlyissuerapi.Issuer{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "issuer1",
+						Namespace: "ns1",
+					},
+					Spec: czertainlyissuerapi.IssuerSpec{
+						AuthSecretName: "issuer1-credentials",
+					},
+					Status: czertainlyissuerapi.IssuerStatus{
+						Conditions: []czertainlyissuerapi.IssuerCondition{
+							{
+								Type:   czertainlyissuerapi.IssuerConditionReady,
+								Status: czertainlyissuerapi.ConditionUnknown,
+							},
+						},
+					},
+				},
+			},
+			secretObjects: []client.Object{
+				&corev1.Secret{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "issuer1-credentials",
+						Namespace: "ns1",
+					},
+				},
+			},
+			healthCheckerBuilder: func(*czertainlyissuerapi.IssuerSpec, map[string][]byte) (signer.HealthChecker, error) {
+				return nil, errors.New("simulated health checker builder error")
+			},
+			expectedError:                errHealthCheckerBuilder,
+			expectedReadyConditionStatus: czertainlyissuerapi.ConditionFalse,
+		},
+		"issuer-failing-healthchecker-check": {
+			name: types.NamespacedName{Namespace: "ns1", Name: "issuer1"},
+			issuerObjects: []client.Object{
+				&czertainlyissuerapi.Issuer{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "issuer1",
+						Namespace: "ns1",
+					},
+					Spec: czertainlyissuerapi.IssuerSpec{
+						AuthSecretName: "issuer1-credentials",
+					},
+					Status: czertainlyissuerapi.IssuerStatus{
+						Conditions: []czertainlyissuerapi.IssuerCondition{
+							{
+								Type:   czertainlyissuerapi.IssuerConditionReady,
+								Status: czertainlyissuerapi.ConditionUnknown,
+							},
+						},
+					},
+				},
+			},
+			secretObjects: []client.Object{
+				&corev1.Secret{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "issuer1-credentials",
+						Namespace: "ns1",
+					},
+				},
+			},
+			healthCheckerBuilder: func(*czertainlyissuerapi.IssuerSpec, map[string][]byte) (signer.HealthChecker, error) {
+				return &fakeHealthChecker{errCheck: errors.New("simulated health check error")}, nil
+			},
+			expectedError:                errHealthCheckerCheck,
+			expectedReadyConditionStatus: czertainlyissuerapi.ConditionFalse,
+		},
+	}
+
+	scheme := runtime.NewScheme()
+	require.NoError(t, czertainlyissuerapi.AddToScheme(scheme))
+	require.NoError(t, corev1.AddToScheme(scheme))
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			eventRecorder := record.NewFakeRecorder(100)
+			fakeClient := fake.NewClientBuilder().
+				WithScheme(scheme).
+				WithObjects(tc.secretObjects...).
+				WithObjects(tc.issuerObjects...).
+				WithStatusSubresource(tc.issuerObjects...).
+				Build()
+			if tc.kind == "" {
+				tc.kind = "Issuer"
+			}
+			controller := IssuerReconciler{
+				Kind:                     tc.kind,
+				Client:                   fakeClient,
+				Scheme:                   scheme,
+				HealthCheckerBuilder:     tc.healthCheckerBuilder,
+				ClusterResourceNamespace: tc.clusterResourceNamespace,
+				recorder:                 eventRecorder,
+			}
+
+			issuerBefore, err := controller.newIssuer()
+			if err == nil {
+				if err := fakeClient.Get(context.TODO(), tc.name, issuerBefore); err != nil {
+					require.NoError(t, client.IgnoreNotFound(err), "unexpected error from fake client")
 				}
-				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
-			}
-		})
-
-		AfterEach(func() {
-			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &czertainlyissuerv1alpha1.Issuer{}
-			err := k8sClient.Get(ctx, typeNamespacedName, resource)
-			Expect(err).NotTo(HaveOccurred())
-
-			By("Cleanup the specific resource instance Issuer")
-			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
-		})
-		It("should successfully reconcile the resource", func() {
-			By("Reconciling the created resource")
-			controllerReconciler := &IssuerReconciler{
-				Client: k8sClient,
-				Scheme: k8sClient.Scheme(),
 			}
 
-			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
-				NamespacedName: typeNamespacedName,
-			})
-			Expect(err).NotTo(HaveOccurred())
-			// TODO(user): Add more specific assertions depending on your controller's reconciliation logic.
-			// Example: If you expect a certain status condition after reconciliation, verify it here.
+			result, reconcileErr := controller.Reconcile(
+				ctrl.LoggerInto(context.TODO(), logrtesting.NewTestLogger(t)),
+				reconcile.Request{NamespacedName: tc.name},
+			)
+
+			var actualEvents []string
+			for {
+				select {
+				case e := <-eventRecorder.Events:
+					actualEvents = append(actualEvents, e)
+					continue
+				default:
+					break
+				}
+				break
+			}
+
+			if tc.expectedError != nil {
+				assertErrorIs(t, tc.expectedError, reconcileErr)
+			} else {
+				assert.NoError(t, reconcileErr)
+			}
+
+			assert.Equal(t, tc.expectedResult, result, "Unexpected result")
+
+			// For tests where the target {Cluster}Issuer exists, we perform some further checks,
+			// otherwise exit early.
+			issuerAfter, err := controller.newIssuer()
+			if err == nil {
+				if err := fakeClient.Get(context.TODO(), tc.name, issuerAfter); err != nil {
+					require.NoError(t, client.IgnoreNotFound(err), "unexpected error from fake client")
+				}
+			}
+			if issuerAfter == nil {
+				return
+			}
+
+			// If the CR is unchanged after the Reconcile then we expect no
+			// Events and need not perform any further checks.
+			// NB: controller-runtime FakeClient updates the Resource version.
+			if issuerBefore.GetResourceVersion() == issuerAfter.GetResourceVersion() {
+				assert.Empty(t, actualEvents, "Events should only be created if the {Cluster}Issuer is modified")
+				return
+			}
+			_, issuerStatusAfter, err := issuerutil.GetSpecAndStatus(issuerAfter)
+			require.NoError(t, err)
+
+			condition := issuerutil.GetReadyCondition(issuerStatusAfter)
+
+			if tc.expectedReadyConditionStatus != "" {
+				if assert.NotNilf(
+					t,
+					condition,
+					"Ready condition was expected but not found: tc.expectedReadyConditionStatus == %v",
+					tc.expectedReadyConditionStatus,
+				) {
+					verifyIssuerReadyCondition(t, tc.expectedReadyConditionStatus, condition)
+				}
+			} else {
+				assert.Nil(t, condition, "Unexpected Ready condition")
+			}
+
+			// Event checks
+			if condition != nil {
+				// The desired Event behaviour is as follows:
+				//
+				// * An Event should always be generated when the Ready condition is set.
+				// * Event contents should match the status and message of the condition.
+				// * Event type should be Warning if the Reconcile failed (temporary error)
+				// * Event type should be warning if the condition status is failed (permanent error)
+				expectedEventType := corev1.EventTypeNormal
+				if reconcileErr != nil || condition.Status == czertainlyissuerapi.ConditionFalse {
+					expectedEventType = corev1.EventTypeWarning
+				}
+				// If there was a Reconcile error, there will be a retry and
+				// this should be reflected in the Event message.
+				eventMessage := condition.Message
+				if reconcileErr != nil {
+					eventMessage = fmt.Sprintf("Temporary error. Retrying: %v", reconcileErr)
+				}
+				// Each Reconcile should only emit a single Event
+				assert.Equal(
+					t,
+					[]string{fmt.Sprintf("%s %s %s", expectedEventType, czertainlyissuerapi.EventReasonIssuerReconciler, eventMessage)},
+					actualEvents,
+					"expected a single event matching the condition",
+				)
+			} else {
+				assert.Empty(t, actualEvents, "Found unexpected Events without a corresponding Ready condition")
+			}
 		})
-	})
-})
+	}
+}
+
+func verifyIssuerReadyCondition(t *testing.T, status czertainlyissuerapi.ConditionStatus, condition *czertainlyissuerapi.IssuerCondition) {
+	assert.Equal(t, status, condition.Status, "unexpected condition status")
+}
