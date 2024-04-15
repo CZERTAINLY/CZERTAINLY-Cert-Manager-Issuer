@@ -1,7 +1,7 @@
 package v1alpha1
 
 const (
-	EventSource                             = "czertainly-external-issuer"
+	EventSource                             = "czertainly-issuer"
 	EventReasonCertificateRequestReconciler = "CertificateRequestReconciler"
 	EventReasonIssuerReconciler             = "IssuerReconciler"
 )

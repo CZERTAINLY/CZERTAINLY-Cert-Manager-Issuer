@@ -24,7 +24,10 @@ const (
 )
 
 var (
+	errServerUrl            = errors.New("server URL is not set")
+	errRaProfileName        = errors.New("RA profile name is not set")
 	errGetAuthSecret        = errors.New("failed to get Secret containing Issuer credentials")
+	errGetCaBundleSecret    = errors.New("failed to get Secret containing CA bundle")
 	errHealthCheckerBuilder = errors.New("failed to build the healthchecker")
 	errHealthCheckerCheck   = errors.New("healthcheck failed")
 )
@@ -111,26 +114,40 @@ func (r *IssuerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (res
 		return ctrl.Result{}, nil
 	}
 
-	secretName := types.NamespacedName{
+	authSecretName := types.NamespacedName{
 		Name: issuerSpec.AuthSecretName,
+	}
+
+	caBundleSecretName := types.NamespacedName{
+		Name: issuerSpec.CaBundleSecretName,
 	}
 
 	switch issuer.(type) {
 	case *czertainlyissuerapi.Issuer:
-		secretName.Namespace = req.Namespace
+		authSecretName.Namespace = req.Namespace
+		caBundleSecretName.Namespace = req.Namespace
 	case *czertainlyissuerapi.ClusterIssuer:
-		secretName.Namespace = r.ClusterResourceNamespace
+		authSecretName.Namespace = r.ClusterResourceNamespace
+		caBundleSecretName.Namespace = r.ClusterResourceNamespace
 	default:
 		log.Error(fmt.Errorf("unexpected issuer type: %t", issuer), "Not retrying.")
 		return ctrl.Result{}, nil
 	}
 
-	var secret corev1.Secret
-	if err := r.Get(ctx, secretName, &secret); err != nil {
-		return ctrl.Result{}, fmt.Errorf("%w, secret name: %s, reason: %v", errGetAuthSecret, secretName, err)
+	var authSecret corev1.Secret
+	if err := r.Get(ctx, authSecretName, &authSecret); err != nil {
+		return ctrl.Result{}, fmt.Errorf("%w, authSecret name: %s, reason: %v", errGetAuthSecret, authSecretName, err)
 	}
 
-	checker, err := r.HealthCheckerBuilder(issuerSpec, secret.Data)
+	var caBundleSecret corev1.Secret
+	// If the issuer has a CA bundle, get it
+	if issuerSpec.CaBundleSecretName != "" {
+		if err := r.Get(ctx, caBundleSecretName, &caBundleSecret); err != nil {
+			return ctrl.Result{}, fmt.Errorf("%w, caBundleSecret name: %s, reason: %v", errGetAuthSecret, caBundleSecretName, err)
+		}
+	}
+
+	checker, err := r.HealthCheckerBuilder(ctx, issuerSpec, authSecret.Data, caBundleSecret.Data)
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("%w: %v", errHealthCheckerBuilder, err)
 	}

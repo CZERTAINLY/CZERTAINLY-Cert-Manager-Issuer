@@ -1,0 +1,15 @@
+# permissions to approve all czertainly-issuer.czertainly.com requests
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cert-manager-controller-approve:czertainly-issuer-czertainly-com
+rules:
+  - apiGroups:
+      - cert-manager.io
+    resources:
+      - signers
+    verbs:
+      - approve
+    resourceNames:
+      - issuers.czertainly-issuer.czertainly.com/*
+      - clusterissuers.czertainly-issuer.czertainly.com/*

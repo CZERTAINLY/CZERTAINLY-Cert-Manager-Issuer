@@ -6,8 +6,8 @@ metadata:
     app.kubernetes.io/name: clusterrole
     app.kubernetes.io/instance: issuer-viewer-role
     app.kubernetes.io/component: rbac
-    app.kubernetes.io/created-by: czertainly-cert-manager-issuer
-    app.kubernetes.io/part-of: czertainly-cert-manager-issuer
+    app.kubernetes.io/created-by: czertainly-issuer
+    app.kubernetes.io/part-of: czertainly-issuer
     app.kubernetes.io/managed-by: kustomize
   name: issuer-viewer-role
 rules:

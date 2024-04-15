@@ -5,8 +5,8 @@ metadata:
     app.kubernetes.io/name: clusterrolebinding
     app.kubernetes.io/instance: manager-rolebinding
     app.kubernetes.io/component: rbac
-    app.kubernetes.io/created-by: czertainly-cert-manager-issuer
-    app.kubernetes.io/part-of: czertainly-cert-manager-issuer
+    app.kubernetes.io/created-by: czertainly-issuer
+    app.kubernetes.io/part-of: czertainly-issuer
     app.kubernetes.io/managed-by: kustomize
   name: manager-rolebinding
 roleRef:

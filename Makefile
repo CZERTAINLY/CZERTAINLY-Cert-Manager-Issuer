@@ -1,5 +1,5 @@
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+IMG ?= czertainly/czertainly-cert-manager-issuer-controller:latest
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.29.0
 
@@ -85,6 +85,10 @@ CERT_MANAGER_VERSION ?= 1.11.1
 kind-cluster: ## Use Kind to create a Kubernetes cluster for E2E tests
 kind-cluster: kind
 	 ${KIND} get clusters | grep ${K8S_CLUSTER_NAME} || ${KIND} create cluster --name ${K8S_CLUSTER_NAME}
+
+.PHONY: prune-kind-cluster
+prune-kind-cluster: ## Prune the Kind cluster
+	${KIND} delete cluster --name ${K8S_CLUSTER_NAME}
 
 .PHONY: kind-load
 kind-load: kind ## Load all the Docker images into Kind

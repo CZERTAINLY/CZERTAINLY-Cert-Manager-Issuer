@@ -6,16 +6,39 @@ import (
 
 // IssuerSpec defines the desired state of Issuer
 type IssuerSpec struct {
-	// URL is the base URL for the endpoint of the signing service,
-	// for example: "https://sample-signer.example.com/api".
-	URL string `json:"url"`
+	// ServerUrl is the base URL to access CZERTAINLY platform,
+	// for example: "https://my.czertainly.com:8443".
+	ServerUrl string `json:"serverUrl"`
 
-	// A reference to a Secret in the same namespace as the referent. If the
-	// referent is a ClusterIssuer, the reference instead refers to the resource
-	// with the given name in the configured 'cluster resource namespace', which
-	// is set as a flag on the controller component (and defaults to the
-	// namespace that the controller runs in).
+	// AuthSecretName is a reference to a kubernetes.io/tls Secret that is
+	// used to authenticate and authorize to CZERTAINLY platform.
+	// The Secret must be in the same namespace
+	// as the referent. If the referent is a ClusterIssuer, the reference instead
+	// refers to the resource with the given name in the configured
+	// 'cluster resource namespace', which is set as a flag on the controller
+	// component (and defaults to the namespace that the controller runs in).
 	AuthSecretName string `json:"authSecretName"`
+
+	// RaProfileUuid is the UUID of the RA profile to use when managing certificates.
+	// You can get the UUID of configured RA profile in the CZERTAINLY platform. The user
+	// should have permission to use the RA profile.
+	RaProfileUuid string `json:"raProfileUuid"`
+
+	// RaProfileName is the name of the RA profile to use when managing certificates.
+	// This is the name of configured RA profile in the CZERTAINLY platform. The user
+	// should have permission to use the RA profile.
+	// +optional
+	RaProfileName string `json:"raProfileName"`
+
+	// CaBundleSecretName is a reference to a Secret that contains the CA bundle to
+	// use when verifying the CZERTAINLY platform's serving certificates.
+	// The Secret must be in the same namespace
+	// as the referent. If the referent is a ClusterIssuer, the reference instead
+	// refers to the resource with the given name in the configured
+	// 'cluster resource namespace', which is set as a flag on the controller
+	// component (and defaults to the namespace that the controller runs in).
+	// +optional
+	CaBundleSecretName string `json:"caBundleSecretName"`
 }
 
 // IssuerStatus defines the observed state of Issuer

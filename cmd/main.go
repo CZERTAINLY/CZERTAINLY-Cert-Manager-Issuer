@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -124,7 +125,7 @@ func main() {
 		Client:                   mgr.GetClient(),
 		Scheme:                   mgr.GetScheme(),
 		ClusterResourceNamespace: clusterResourceNamespace,
-		HealthCheckerBuilder:     signer.ExampleHealthCheckerFromIssuerAndSecretData,
+		HealthCheckerBuilder:     signer.CzertainlyHealthCheckerFromIssuerAndSecretData,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Issuer")
 		os.Exit(1)
@@ -134,7 +135,7 @@ func main() {
 		Client:                   mgr.GetClient(),
 		Scheme:                   mgr.GetScheme(),
 		ClusterResourceNamespace: clusterResourceNamespace,
-		HealthCheckerBuilder:     signer.ExampleHealthCheckerFromIssuerAndSecretData,
+		HealthCheckerBuilder:     signer.CzertainlyHealthCheckerFromIssuerAndSecretData,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "ClusterIssuer")
 		os.Exit(1)
@@ -144,7 +145,7 @@ func main() {
 		Client:                   mgr.GetClient(),
 		Scheme:                   mgr.GetScheme(),
 		ClusterResourceNamespace: clusterResourceNamespace,
-		SignerBuilder:            signer.ExampleSignerFromIssuerAndSecretData,
+		SignerBuilder:            signer.CzertainlySignerFromIssuerAndSecretData,
 		CheckApprovedCondition:   !disableApprovedCheck,
 		Clock:                    clock.RealClock{},
 	}).SetupWithManager(mgr); err != nil {
@@ -152,6 +153,15 @@ func main() {
 		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder
+
+	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
+		setupLog.Error(err, "unable to set up health check")
+		os.Exit(1)
+	}
+	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
+		setupLog.Error(err, "unable to set up ready check")
+		os.Exit(1)
+	}
 
 	setupLog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {

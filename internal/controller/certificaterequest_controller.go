@@ -205,22 +205,35 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return ctrl.Result{}, errIssuerNotReady
 	}
 
-	secretName := types.NamespacedName{
+	authSecretName := types.NamespacedName{
 		Name:      issuerSpec.AuthSecretName,
 		Namespace: secretNamespace,
 	}
 
-	var secret corev1.Secret
-	if err := r.Get(ctx, secretName, &secret); err != nil {
-		return ctrl.Result{}, fmt.Errorf("%w, secret name: %s, reason: %v", errGetAuthSecret, secretName, err)
+	var authSecret corev1.Secret
+	if err := r.Get(ctx, authSecretName, &authSecret); err != nil {
+		return ctrl.Result{}, fmt.Errorf("%w, authSecret name: %s, reason: %v", errGetAuthSecret, authSecretName, err)
 	}
 
-	signer, err := r.SignerBuilder(issuerSpec, secret.Data)
+	caBundleSecretName := types.NamespacedName{
+		Name:      issuerSpec.CaBundleSecretName,
+		Namespace: secretNamespace,
+	}
+
+	var caBundleSecret corev1.Secret
+	// If the issuer has a CA bundle, get it
+	if issuerSpec.CaBundleSecretName != "" {
+		if err := r.Get(ctx, caBundleSecretName, &caBundleSecret); err != nil {
+			return ctrl.Result{}, fmt.Errorf("%w, caBundleSecret name: %s, reason: %v", errGetAuthSecret, caBundleSecretName, err)
+		}
+	}
+
+	signer, err := r.SignerBuilder(ctx, issuerSpec, authSecret.Data, caBundleSecret.Data, certificateRequest.GetAnnotations())
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("%w: %v", errSignerBuilder, err)
 	}
 
-	signed, err := signer.Sign(certificateRequest.Spec.Request)
+	signed, err := signer.Sign(ctx, certificateRequest.Spec.Request)
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("%w: %v", errSignerSign, err)
 	}

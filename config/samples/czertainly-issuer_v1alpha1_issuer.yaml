@@ -6,4 +6,6 @@ metadata:
   name: issuer-czertainly
 spec:
   authSecretName: "issuer-czertainly-credentials"
-  url: "http://sample-issuer.example.com/api/v1"
+  serverUrl: "https://sample-issuer.example.com"
+  raProfileUuid: "9cb76b6a-c291-4e23-b11a-bb3da76adbc6"
+  raProfileName: "sample-ra-profile"
