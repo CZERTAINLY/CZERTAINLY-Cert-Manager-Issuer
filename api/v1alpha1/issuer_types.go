@@ -6,9 +6,9 @@ import (
 
 // IssuerSpec defines the desired state of Issuer
 type IssuerSpec struct {
-	// ServerUrl is the base URL to access CZERTAINLY platform,
-	// for example: "https://my.czertainly.com:8443".
-	ServerUrl string `json:"serverUrl"`
+	// ApiUrl is the URL to access CZERTAINLY platform API,
+	// for example: "https://my.czertainly.com/api".
+	ApiUrl string `json:"serverUrl"`
 
 	// AuthSecretName is a reference to a kubernetes.io/tls Secret that is
 	// used to authenticate and authorize to CZERTAINLY platform.
@@ -32,8 +32,8 @@ type IssuerSpec struct {
 
 	// CaBundleSecretName is a reference to a Secret that contains the CA bundle to
 	// use when verifying the CZERTAINLY platform's serving certificates.
-	// The Secret must be in the same namespace
-	// as the referent. If the referent is a ClusterIssuer, the reference instead
+	// The Secret must be in the same namespace as the referent and must
+	// contain 'ca.crt' in data. If the referent is a ClusterIssuer, the reference instead
 	// refers to the resource with the given name in the configured
 	// 'cluster resource namespace', which is set as a flag on the controller
 	// component (and defaults to the namespace that the controller runs in).

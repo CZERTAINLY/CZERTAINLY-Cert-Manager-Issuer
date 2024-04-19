@@ -53,8 +53,8 @@ spec:
                 description: |-
                   CaBundleSecretName is a reference to a Secret that contains the CA bundle to
                   use when verifying the CZERTAINLY platform's serving certificates.
-                  The Secret must be in the same namespace
-                  as the referent. If the referent is a ClusterIssuer, the reference instead
+                  The Secret must be in the same namespace as the referent and must
+                  contain 'ca.crt' in data. If the referent is a ClusterIssuer, the reference instead
                   refers to the resource with the given name in the configured
                   'cluster resource namespace', which is set as a flag on the controller
                   component (and defaults to the namespace that the controller runs in).
@@ -73,8 +73,8 @@ spec:
                 type: string
               serverUrl:
                 description: |-
-                  ServerUrl is the base URL to access CZERTAINLY platform,
-                  for example: "https://my.czertainly.com:8443".
+                  ApiUrl is the URL to access CZERTAINLY platform API,
+                  for example: "https://my.czertainly.com/api".
                 type: string
             required:
             - authSecretName

@@ -17,7 +17,7 @@ import (
 
 type czertainlySigner struct {
 	httpClient    *czertainly.APIClient
-	serverUrl     string
+	apiUrl        string
 	raProfileUuid string
 	raProfileName string
 }
@@ -41,7 +41,7 @@ func CzertainlyHealthCheckerFromIssuerAndSecretData(ctx context.Context, issuerS
 	czertainlyConfig := czertainly.NewConfiguration()
 
 	czertainlyConfig.Servers = czertainly.ServerConfigurations{
-		{URL: issuerSpec.ServerUrl},
+		{URL: issuerSpec.ApiUrl},
 	}
 
 	client, err := createHttpClient(ctx, issuerSpec, authSecretData, caBundleSecretData)
@@ -89,7 +89,7 @@ func CzertainlySignerFromIssuerAndSecretData(ctx context.Context, issuerSpec *cz
 	czertainlyConfig := czertainly.NewConfiguration()
 
 	czertainlyConfig.Servers = czertainly.ServerConfigurations{
-		{URL: issuerSpec.ServerUrl},
+		{URL: issuerSpec.ApiUrl},
 	}
 
 	client, err := createHttpClient(ctx, issuerSpec, authSecretData, caBundleSecretData)
@@ -142,10 +142,6 @@ func (o *czertainlySigner) Sign(ctx context.Context, csrBytes []byte) ([]byte, e
 	l := log.FromContext(ctx)
 
 	l.Info(fmt.Sprintf("Processing CSR: %s", string(csrBytes)))
-
-	getRaProfileDetails := o.serverUrl + "/api/v1/raProfiles/" + o.raProfileUuid
-
-	l.Info(fmt.Sprintf("Getting RA profile details: url=%s", getRaProfileDetails))
 
 	raProfileDto, _, err := o.httpClient.RAProfileManagementAPI.GetRaProfileWithoutAuthority(context.Background(), o.raProfileUuid).Execute()
 	if err != nil {
