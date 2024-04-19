@@ -1,24 +1,22 @@
 package signer
 
 import (
-	"bytes"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/base64"
-	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"fmt"
 	czertainlyissuerapi "github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer/api/v1alpha1"
-	"io"
+	"github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer/internal/issuer/czertainly"
 	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"time"
 )
 
 type czertainlySigner struct {
-	httpClient    *http.Client
+	httpClient    *czertainly.APIClient
 	serverUrl     string
 	raProfileUuid string
 	raProfileName string
@@ -40,18 +38,20 @@ func CzertainlyHealthCheckerFromIssuerAndSecretData(ctx context.Context, issuerS
 	// l := log.FromContext(ctx)
 	signer := czertainlySigner{}
 
+	czertainlyConfig := czertainly.NewConfiguration()
+
+	czertainlyConfig.Servers = czertainly.ServerConfigurations{
+		{URL: issuerSpec.ServerUrl},
+	}
+
 	client, err := createHttpClient(ctx, issuerSpec, authSecretData, caBundleSecretData)
 	if err != nil {
 		return nil, err
 	}
 
-	signer.httpClient = client
+	czertainlyConfig.HTTPClient = client
 
-	if issuerSpec.ServerUrl == "" {
-		return nil, errors.New("server URL is not set")
-	}
-
-	signer.serverUrl = issuerSpec.ServerUrl
+	signer.httpClient = czertainly.NewAPIClient(czertainlyConfig)
 
 	return &signer, nil
 }
@@ -86,18 +86,20 @@ func CzertainlySignerFromIssuerAndSecretData(ctx context.Context, issuerSpec *cz
 	// l := log.FromContext(ctx)
 	signer := czertainlySigner{}
 
+	czertainlyConfig := czertainly.NewConfiguration()
+
+	czertainlyConfig.Servers = czertainly.ServerConfigurations{
+		{URL: issuerSpec.ServerUrl},
+	}
+
 	client, err := createHttpClient(ctx, issuerSpec, authSecretData, caBundleSecretData)
 	if err != nil {
 		return nil, err
 	}
 
-	signer.httpClient = client
+	czertainlyConfig.HTTPClient = client
 
-	if issuerSpec.ServerUrl == "" {
-		return nil, errors.New("server URL is not set")
-	}
-
-	signer.serverUrl = issuerSpec.ServerUrl
+	signer.httpClient = czertainly.NewAPIClient(czertainlyConfig)
 
 	if issuerSpec.RaProfileUuid == "" {
 		return nil, errors.New("RA profile uuid is not set")
@@ -110,7 +112,7 @@ func CzertainlySignerFromIssuerAndSecretData(ctx context.Context, issuerSpec *cz
 
 func (o *czertainlySigner) Check() error {
 	// check if the server is running and we can connect to it
-	_, err := o.httpClient.Get(o.serverUrl + "/api/v1/auth/profile")
+	_, _, err := o.httpClient.AuthenticationManagementAPI.Profile(context.Background()).Execute()
 	if err != nil {
 		return err
 	}
@@ -145,78 +147,30 @@ func (o *czertainlySigner) Sign(ctx context.Context, csrBytes []byte) ([]byte, e
 
 	l.Info(fmt.Sprintf("Getting RA profile details: url=%s", getRaProfileDetails))
 
-	response, err := o.httpClient.Get(getRaProfileDetails)
+	raProfileDto, _, err := o.httpClient.RAProfileManagementAPI.GetRaProfileWithoutAuthority(context.Background(), o.raProfileUuid).Execute()
 	if err != nil {
 		return nil, err
 	}
 
-	if response.StatusCode != http.StatusOK {
-		l.Info(fmt.Sprintf("Failed to get RA profile details: status=%d", response.StatusCode))
-		return nil, errors.New("failed to get RA profile details")
-	}
+	authorityUuid := raProfileDto.AuthorityInstanceUuid
 
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-
-		}
-	}(response.Body)
-
-	// get authorityInstanceUuid from response
-	data, err := io.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var result RaProfileDetailResponse
-	if err := json.Unmarshal(data, &result); err != nil {
-		return nil, err
-	}
-
-	authorityUuid := result.AuthorityInstanceUuid
-
-	issueCertRequest := IssueCertRequest{
+	issueCertificateRequest := czertainly.ClientCertificateSignRequestDto{
 		Pkcs10:     string(csrBytes),
-		Attributes: []string{},
+		Attributes: []czertainly.RequestAttributeDto{},
 	}
-
-	request, err := json.Marshal(issueCertRequest)
 
 	l.Info(fmt.Sprintf("Issuing certificate: authorityUuid=%s, raProfileUuid=%s", authorityUuid, o.raProfileUuid))
 
-	post, err := o.httpClient.Post(
-		o.serverUrl+"/api/v2/operations/authorities/"+authorityUuid+"/raProfiles/"+o.raProfileUuid+"/certificates",
-		"application/json", bytes.NewReader(request))
+	clientCertificateDataResponseDto, _, err := o.httpClient.ClientOperationsV2API.IssueCertificate(context.Background(), authorityUuid, o.raProfileUuid).ClientCertificateSignRequestDto(issueCertificateRequest).Execute()
 	if err != nil {
 		return nil, err
 	}
 
-	if post.StatusCode != http.StatusOK {
-		return nil, errors.New("failed to issue certificate")
-	}
-
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-
-		}
-	}(post.Body)
-
-	data, err = io.ReadAll(post.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var issueCertResponse IssueCertResponse
-	if err := json.Unmarshal(data, &issueCertResponse); err != nil {
-		return nil, err
-	}
-
-	uuid := issueCertResponse.Uuid
+	uuid := clientCertificateDataResponseDto.Uuid
 
 	l.Info(fmt.Sprintf("Waiting for certificate request to be processed: uuid=%s", uuid))
 
-	state := "requested"
+	state := czertainly.CERTIFICATESTATE_REQUESTED
 	cert := ""
 	for {
 		s, c, err := o.waitForCertificate(ctx, uuid)
@@ -224,7 +178,7 @@ func (o *czertainlySigner) Sign(ctx context.Context, csrBytes []byte) ([]byte, e
 			return nil, err
 		}
 		state = s
-		if state == "issued" || state == "failed" || state == "rejected" {
+		if state == czertainly.CERTIFICATESTATE_ISSUED || state == czertainly.CERTIFICATESTATE_FAILED || state == czertainly.CERTIFICATESTATE_REJECTED {
 			cert = c
 			break
 		} else {
@@ -244,35 +198,14 @@ func (o *czertainlySigner) Sign(ctx context.Context, csrBytes []byte) ([]byte, e
 	}), nil
 }
 
-func (o *czertainlySigner) waitForCertificate(ctx context.Context, uuid string) (string, string, error) {
-	get, err := o.httpClient.Get(o.serverUrl + "/api/v1/certificates/" + uuid)
+func (o *czertainlySigner) waitForCertificate(ctx context.Context, uuid string) (czertainly.CertificateState, string, error) {
+	certificateDetailDto, _, err := o.httpClient.CertificateInventoryAPI.GetCertificate(context.Background(), uuid).Execute()
 	if err != nil {
 		return "", "", err
 	}
 
-	if get.StatusCode != http.StatusOK {
-		return "", "", errors.New("failed to get certificate details")
-	}
-
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-
-		}
-	}(get.Body)
-
-	data, err := io.ReadAll(get.Body)
-	if err != nil {
-		return "", "", err
-	}
-
-	var certDetailsResponse CertDetailsResponse
-	if err := json.Unmarshal(data, &certDetailsResponse); err != nil {
-		return "", "", err
-	}
-
-	state := certDetailsResponse.State
-	cert := certDetailsResponse.CertificateContent
+	state := certificateDetailDto.State
+	cert := certificateDetailDto.CertificateContent
 
 	if state == "issued" {
 		return state, cert, nil
