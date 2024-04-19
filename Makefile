@@ -247,3 +247,14 @@ GOBIN=$(LOCALBIN) go install $${package} ;\
 mv "$$(echo "$(1)" | sed "s/-$(3)$$//")" $(1) ;\
 }
 endef
+
+##@ OpenAPI
+
+.PHONY: openapi-clean
+openapi-clean: ## Clear the OpenAPI generated files
+	rm -rf internal/issuer/czertainly/*
+
+.PHONY: openapi-generate
+openapi-generate: ## Generate the OpenAPI client
+	openapi-generator-cli generate --config openapi-generator-config.yaml
+	patch -p0 < openapi.patch

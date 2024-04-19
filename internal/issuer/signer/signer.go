@@ -112,7 +112,7 @@ func CzertainlySignerFromIssuerAndSecretData(ctx context.Context, issuerSpec *cz
 
 func (o *czertainlySigner) Check() error {
 	// check if the server is running and we can connect to it
-	_, err := o.httpClient.AuthenticationManagementAPI.Profile(context.Background()).Execute()
+	_, _, err := o.httpClient.AuthenticationManagementAPI.Profile(context.Background()).Execute()
 	if err != nil {
 		return err
 	}

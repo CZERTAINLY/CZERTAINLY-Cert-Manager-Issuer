@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.11.1-SNAPSHOT
+API version: 2.11.0
 Contact: getinfo@czertainly.com
 */
 
@@ -21,8 +21,26 @@ var _ MappedNullable = &RaProfileDto{}
 
 // RaProfileDto struct for RaProfileDto
 type RaProfileDto struct {
+	// Object identifier
+	Uuid string `json:"uuid"`
+	// Object Name
+	Name string `json:"name"`
+	// Description of RA Profile
+	Description *string `json:"description,omitempty"`
 	// UUID of Authority provider
 	AuthorityInstanceUuid string `json:"authorityInstanceUuid"`
+	// Name of Authority instance
+	AuthorityInstanceName string `json:"authorityInstanceName"`
+	// Has Authority of legacy authority provider
+	LegacyAuthority *bool `json:"legacyAuthority,omitempty"`
+	// Enabled flag - true = enabled; false = disabled
+	Enabled bool `json:"enabled"`
+	// List of RA Profiles attributes
+	Attributes []ResponseAttributeDto `json:"attributes,omitempty"`
+	// List of Custom Attributes
+	CustomAttributes []ResponseAttributeDto `json:"customAttributes,omitempty"`
+	// List of protocols enabled
+	EnabledProtocols []string `json:"enabledProtocols,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -34,7 +52,11 @@ type _RaProfileDto RaProfileDto
 // will change when the set of required properties is changed
 func NewRaProfileDto(uuid string, name string, authorityInstanceUuid string, authorityInstanceName string, enabled bool) *RaProfileDto {
 	this := RaProfileDto{}
+	this.Uuid = uuid
+	this.Name = name
 	this.AuthorityInstanceUuid = authorityInstanceUuid
+	this.AuthorityInstanceName = authorityInstanceName
+	this.Enabled = enabled
 	return &this
 }
 
@@ -44,6 +66,86 @@ func NewRaProfileDto(uuid string, name string, authorityInstanceUuid string, aut
 func NewRaProfileDtoWithDefaults() *RaProfileDto {
 	this := RaProfileDto{}
 	return &this
+}
+
+// GetUuid returns the Uuid field value
+func (o *RaProfileDto) GetUuid() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Uuid
+}
+
+// GetUuidOk returns a tuple with the Uuid field value
+// and a boolean to check if the value has been set.
+func (o *RaProfileDto) GetUuidOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Uuid, true
+}
+
+// SetUuid sets field value
+func (o *RaProfileDto) SetUuid(v string) {
+	o.Uuid = v
+}
+
+// GetName returns the Name field value
+func (o *RaProfileDto) GetName() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.Name
+}
+
+// GetNameOk returns a tuple with the Name field value
+// and a boolean to check if the value has been set.
+func (o *RaProfileDto) GetNameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Name, true
+}
+
+// SetName sets field value
+func (o *RaProfileDto) SetName(v string) {
+	o.Name = v
+}
+
+// GetDescription returns the Description field value if set, zero value otherwise.
+func (o *RaProfileDto) GetDescription() string {
+	if o == nil || IsNil(o.Description) {
+		var ret string
+		return ret
+	}
+	return *o.Description
+}
+
+// GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RaProfileDto) GetDescriptionOk() (*string, bool) {
+	if o == nil || IsNil(o.Description) {
+		return nil, false
+	}
+	return o.Description, true
+}
+
+// HasDescription returns a boolean if a field has been set.
+func (o *RaProfileDto) HasDescription() bool {
+	if o != nil && !IsNil(o.Description) {
+		return true
+	}
+
+	return false
+}
+
+// SetDescription gets a reference to the given string and assigns it to the Description field.
+func (o *RaProfileDto) SetDescription(v string) {
+	o.Description = &v
 }
 
 // GetAuthorityInstanceUuid returns the AuthorityInstanceUuid field value
@@ -70,6 +172,182 @@ func (o *RaProfileDto) SetAuthorityInstanceUuid(v string) {
 	o.AuthorityInstanceUuid = v
 }
 
+// GetAuthorityInstanceName returns the AuthorityInstanceName field value
+func (o *RaProfileDto) GetAuthorityInstanceName() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.AuthorityInstanceName
+}
+
+// GetAuthorityInstanceNameOk returns a tuple with the AuthorityInstanceName field value
+// and a boolean to check if the value has been set.
+func (o *RaProfileDto) GetAuthorityInstanceNameOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.AuthorityInstanceName, true
+}
+
+// SetAuthorityInstanceName sets field value
+func (o *RaProfileDto) SetAuthorityInstanceName(v string) {
+	o.AuthorityInstanceName = v
+}
+
+// GetLegacyAuthority returns the LegacyAuthority field value if set, zero value otherwise.
+func (o *RaProfileDto) GetLegacyAuthority() bool {
+	if o == nil || IsNil(o.LegacyAuthority) {
+		var ret bool
+		return ret
+	}
+	return *o.LegacyAuthority
+}
+
+// GetLegacyAuthorityOk returns a tuple with the LegacyAuthority field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RaProfileDto) GetLegacyAuthorityOk() (*bool, bool) {
+	if o == nil || IsNil(o.LegacyAuthority) {
+		return nil, false
+	}
+	return o.LegacyAuthority, true
+}
+
+// HasLegacyAuthority returns a boolean if a field has been set.
+func (o *RaProfileDto) HasLegacyAuthority() bool {
+	if o != nil && !IsNil(o.LegacyAuthority) {
+		return true
+	}
+
+	return false
+}
+
+// SetLegacyAuthority gets a reference to the given bool and assigns it to the LegacyAuthority field.
+func (o *RaProfileDto) SetLegacyAuthority(v bool) {
+	o.LegacyAuthority = &v
+}
+
+// GetEnabled returns the Enabled field value
+func (o *RaProfileDto) GetEnabled() bool {
+	if o == nil {
+		var ret bool
+		return ret
+	}
+
+	return o.Enabled
+}
+
+// GetEnabledOk returns a tuple with the Enabled field value
+// and a boolean to check if the value has been set.
+func (o *RaProfileDto) GetEnabledOk() (*bool, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Enabled, true
+}
+
+// SetEnabled sets field value
+func (o *RaProfileDto) SetEnabled(v bool) {
+	o.Enabled = v
+}
+
+// GetAttributes returns the Attributes field value if set, zero value otherwise.
+func (o *RaProfileDto) GetAttributes() []ResponseAttributeDto {
+	if o == nil || IsNil(o.Attributes) {
+		var ret []ResponseAttributeDto
+		return ret
+	}
+	return o.Attributes
+}
+
+// GetAttributesOk returns a tuple with the Attributes field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RaProfileDto) GetAttributesOk() ([]ResponseAttributeDto, bool) {
+	if o == nil || IsNil(o.Attributes) {
+		return nil, false
+	}
+	return o.Attributes, true
+}
+
+// HasAttributes returns a boolean if a field has been set.
+func (o *RaProfileDto) HasAttributes() bool {
+	if o != nil && !IsNil(o.Attributes) {
+		return true
+	}
+
+	return false
+}
+
+// SetAttributes gets a reference to the given []ResponseAttributeDto and assigns it to the Attributes field.
+func (o *RaProfileDto) SetAttributes(v []ResponseAttributeDto) {
+	o.Attributes = v
+}
+
+// GetCustomAttributes returns the CustomAttributes field value if set, zero value otherwise.
+func (o *RaProfileDto) GetCustomAttributes() []ResponseAttributeDto {
+	if o == nil || IsNil(o.CustomAttributes) {
+		var ret []ResponseAttributeDto
+		return ret
+	}
+	return o.CustomAttributes
+}
+
+// GetCustomAttributesOk returns a tuple with the CustomAttributes field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RaProfileDto) GetCustomAttributesOk() ([]ResponseAttributeDto, bool) {
+	if o == nil || IsNil(o.CustomAttributes) {
+		return nil, false
+	}
+	return o.CustomAttributes, true
+}
+
+// HasCustomAttributes returns a boolean if a field has been set.
+func (o *RaProfileDto) HasCustomAttributes() bool {
+	if o != nil && !IsNil(o.CustomAttributes) {
+		return true
+	}
+
+	return false
+}
+
+// SetCustomAttributes gets a reference to the given []ResponseAttributeDto and assigns it to the CustomAttributes field.
+func (o *RaProfileDto) SetCustomAttributes(v []ResponseAttributeDto) {
+	o.CustomAttributes = v
+}
+
+// GetEnabledProtocols returns the EnabledProtocols field value if set, zero value otherwise.
+func (o *RaProfileDto) GetEnabledProtocols() []string {
+	if o == nil || IsNil(o.EnabledProtocols) {
+		var ret []string
+		return ret
+	}
+	return o.EnabledProtocols
+}
+
+// GetEnabledProtocolsOk returns a tuple with the EnabledProtocols field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *RaProfileDto) GetEnabledProtocolsOk() ([]string, bool) {
+	if o == nil || IsNil(o.EnabledProtocols) {
+		return nil, false
+	}
+	return o.EnabledProtocols, true
+}
+
+// HasEnabledProtocols returns a boolean if a field has been set.
+func (o *RaProfileDto) HasEnabledProtocols() bool {
+	if o != nil && !IsNil(o.EnabledProtocols) {
+		return true
+	}
+
+	return false
+}
+
+// SetEnabledProtocols gets a reference to the given []string and assigns it to the EnabledProtocols field.
+func (o *RaProfileDto) SetEnabledProtocols(v []string) {
+	o.EnabledProtocols = v
+}
+
 func (o RaProfileDto) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -80,7 +358,30 @@ func (o RaProfileDto) MarshalJSON() ([]byte, error) {
 
 func (o RaProfileDto) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	toSerialize["uuid"] = o.Uuid
+	toSerialize["name"] = o.Name
+	if !IsNil(o.Description) {
+		toSerialize["description"] = o.Description
+	}
 	toSerialize["authorityInstanceUuid"] = o.AuthorityInstanceUuid
+	toSerialize["authorityInstanceName"] = o.AuthorityInstanceName
+	if !IsNil(o.LegacyAuthority) {
+		toSerialize["legacyAuthority"] = o.LegacyAuthority
+	}
+	toSerialize["enabled"] = o.Enabled
+	if !IsNil(o.Attributes) {
+		toSerialize["attributes"] = o.Attributes
+	}
+	if !IsNil(o.CustomAttributes) {
+		toSerialize["customAttributes"] = o.CustomAttributes
+	}
+	if !IsNil(o.EnabledProtocols) {
+		toSerialize["enabledProtocols"] = o.EnabledProtocols
+	}
+
+	for key, value := range o.AdditionalProperties {
+		toSerialize[key] = value
+	}
 
 	return toSerialize, nil
 }
@@ -90,7 +391,11 @@ func (o *RaProfileDto) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
+		"uuid",
+		"name",
 		"authorityInstanceUuid",
+		"authorityInstanceName",
+		"enabled",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -120,7 +425,16 @@ func (o *RaProfileDto) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "uuid")
+		delete(additionalProperties, "name")
+		delete(additionalProperties, "description")
 		delete(additionalProperties, "authorityInstanceUuid")
+		delete(additionalProperties, "authorityInstanceName")
+		delete(additionalProperties, "legacyAuthority")
+		delete(additionalProperties, "enabled")
+		delete(additionalProperties, "attributes")
+		delete(additionalProperties, "customAttributes")
+		delete(additionalProperties, "enabledProtocols")
 		o.AdditionalProperties = additionalProperties
 	}
 

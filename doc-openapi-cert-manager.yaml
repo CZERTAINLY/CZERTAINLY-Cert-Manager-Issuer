@@ -9,7 +9,7 @@ info:
   license:
     name: MIT License
     url: https://github.com/3KeyCompany/CZERTAINLY/blob/develop/LICENSE.md
-  version: 2.11.1-SNAPSHOT
+  version: 2.11.0
   x-logo:
     url: images/czertainly_color_H.svg
 externalDocs:
@@ -54,18 +54,12 @@ paths:
               $ref: '#/components/schemas/ClientCertificateSignRequestDto'
         required: true
       responses:
-        "400":
-          description: Bad Request
+        "403":
+          description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorMessageDto'
-        "502":
-          description: Connector Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorMessageDto'
+                $ref: '#/components/schemas/AuthenticationServiceExceptionDto'
         "422":
           description: Unprocessable Entity
           content:
@@ -77,14 +71,28 @@ paths:
               example:
               - Error Message 1
               - Error Message 2
-        "404":
-          description: Not Found
+        "401":
+          description: Unauthorized
+        "400":
+          description: Bad Request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorMessageDto'
         "500":
           description: Internal Server Error
+        "502":
+          description: Connector Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageDto'
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageDto'
         "200":
           description: Certificate issued
           content:
@@ -97,14 +105,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorMessageDto'
-        "401":
-          description: Unauthorized
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthenticationServiceExceptionDto'
   /v1/raProfiles/{raProfileUuid}:
     get:
       tags:
@@ -119,12 +119,22 @@ paths:
         schema:
           type: string
       responses:
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationServiceExceptionDto'
+        "401":
+          description: Unauthorized
         "400":
           description: Bad Request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorMessageDto'
+        "500":
+          description: Internal Server Error
         "502":
           description: Connector Error
           content:
@@ -137,28 +147,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorMessageDto'
-        "500":
-          description: Internal Server Error
-        "200":
-          description: RA Profile details retrieved
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RaProfileDto'
         "503":
           description: Connector Communication Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorMessageDto'
-        "401":
-          description: Unauthorized
-        "403":
-          description: Forbidden
+        "200":
+          description: RA Profile details retrieved
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthenticationServiceExceptionDto'
+                $ref: '#/components/schemas/RaProfileDto'
   /v1/certificates/{uuid}:
     get:
       tags:
@@ -179,28 +179,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CertificateDetailDto'
-        "400":
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorMessageDto'
-        "404":
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorMessageDto'
-        "500":
-          description: Internal Server Error
-        "401":
-          description: Unauthorized
         "403":
           description: Forbidden
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthenticationServiceExceptionDto'
+        "401":
+          description: Unauthorized
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageDto'
+        "500":
+          description: Internal Server Error
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageDto'
   /v1/auth/profile:
     get:
       tags:
@@ -208,34 +208,34 @@ paths:
       summary: Profile Authorization
       operationId: profile
       responses:
-        "400":
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorMessageDto'
         "200":
           description: Authenticate a user
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserDetailDto'
-        "404":
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorMessageDto'
-        "500":
-          description: Internal Server Error
-        "401":
-          description: Unauthorized
         "403":
           description: Forbidden
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthenticationServiceExceptionDto'
+        "401":
+          description: Unauthorized
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageDto'
+        "500":
+          description: Internal Server Error
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageDto'
 components:
   schemas:
     AttributeCallback:
@@ -777,9 +777,7 @@ components:
     RequestAttributeDto:
       required:
       - content
-      - contentType
       - name
-      - uuid
       type: object
       properties:
         uuid:
@@ -790,8 +788,6 @@ components:
           type: string
           description: Name of the Attribute
           example: Attribute
-        contentType:
-          $ref: '#/components/schemas/AttributeContentType'
         content:
           type: array
           description: Content of the Attribute
@@ -851,15 +847,6 @@ components:
         data:
           type: string
           description: Time attribute value in format HH:mm:ss
-    ErrorMessageDto:
-      required:
-      - message
-      type: object
-      properties:
-        message:
-          type: string
-          description: Error message detail
-          example: Error message
     AuthenticationServiceExceptionDto:
       required:
       - code
@@ -877,6 +864,15 @@ components:
         message:
           type: string
           description: Exception message
+    ErrorMessageDto:
+      required:
+      - message
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error message detail
+          example: Error message
     ClientCertificateDataResponseDto:
       required:
       - uuid
@@ -1650,6 +1646,8 @@ components:
       description: Locations associated to the Certificate
     MetadataResponseDto:
       required:
+      - connectorName
+      - connectorUuid
       - items
       type: object
       properties:
@@ -1659,8 +1657,6 @@ components:
         connectorName:
           type: string
           description: Name of the Connector
-        sourceObjectType:
-          $ref: '#/components/schemas/Resource'
         items:
           type: array
           description: List of Metadata
@@ -1682,45 +1678,11 @@ components:
           description: Object Name
           example: Name
       description: Source Objects
-    Resource:
-      type: string
-      description: Source Object Type
-      enum:
-      - NONE
-      - dashboard
-      - settings
-      - auditLogs
-      - credentials
-      - connectors
-      - attributes
-      - jobs
-      - notificationInstances
-      - users
-      - roles
-      - acmeAccounts
-      - acmeProfiles
-      - scepProfiles
-      - cmpProfiles
-      - authorities
-      - raProfiles
-      - certificates
-      - certificateRequests
-      - groups
-      - complianceProfiles
-      - discoveries
-      - entities
-      - locations
-      - tokenProfiles
-      - tokens
-      - keys
-      - approvalProfiles
-      - approvals
     ResponseMetadataDto:
       required:
       - contentType
       - label
       - name
-      - sourceObjects
       - type
       type: object
       properties:
@@ -1745,6 +1707,9 @@ components:
           description: Content of the Attribute
           items:
             $ref: '#/components/schemas/BaseAttributeContentDto'
+        sourceObjectType:
+          type: string
+          description: Source Object Type
         sourceObjects:
           type: array
           description: Source Objects

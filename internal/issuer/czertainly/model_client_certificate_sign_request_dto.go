@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.11.1-SNAPSHOT
+API version: 2.11.0
 Contact: getinfo@czertainly.com
 */
 
@@ -21,11 +21,20 @@ var _ MappedNullable = &ClientCertificateSignRequestDto{}
 
 // ClientCertificateSignRequestDto struct for ClientCertificateSignRequestDto
 type ClientCertificateSignRequestDto struct {
+	// List of attributes to create CSR. Required if CSR is not provided
+	CsrAttributes []RequestAttributeDto `json:"csrAttributes,omitempty"`
+	// List of attributes to sign the CSR
+	SignatureAttributes []RequestAttributeDto `json:"signatureAttributes,omitempty"`
 	// Certificate sign request (PKCS#10) encoded as Base64 string
 	Pkcs10 string `json:"pkcs10"`
-
+	// Token Profile UUID. Required if CSR is not uploaded
+	TokenProfileUuid *string `json:"tokenProfileUuid,omitempty"`
+	// Key UUID. Required if CSR is not uploaded
+	KeyUuid *string `json:"keyUuid,omitempty"`
 	// List of RA Profile related Attributes to issue Certificate
 	Attributes []RequestAttributeDto `json:"attributes"`
+	// List of Custom Attributes
+	CustomAttributes []RequestAttributeDto `json:"customAttributes,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -48,6 +57,70 @@ func NewClientCertificateSignRequestDto(pkcs10 string, attributes []RequestAttri
 func NewClientCertificateSignRequestDtoWithDefaults() *ClientCertificateSignRequestDto {
 	this := ClientCertificateSignRequestDto{}
 	return &this
+}
+
+// GetCsrAttributes returns the CsrAttributes field value if set, zero value otherwise.
+func (o *ClientCertificateSignRequestDto) GetCsrAttributes() []RequestAttributeDto {
+	if o == nil || IsNil(o.CsrAttributes) {
+		var ret []RequestAttributeDto
+		return ret
+	}
+	return o.CsrAttributes
+}
+
+// GetCsrAttributesOk returns a tuple with the CsrAttributes field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ClientCertificateSignRequestDto) GetCsrAttributesOk() ([]RequestAttributeDto, bool) {
+	if o == nil || IsNil(o.CsrAttributes) {
+		return nil, false
+	}
+	return o.CsrAttributes, true
+}
+
+// HasCsrAttributes returns a boolean if a field has been set.
+func (o *ClientCertificateSignRequestDto) HasCsrAttributes() bool {
+	if o != nil && !IsNil(o.CsrAttributes) {
+		return true
+	}
+
+	return false
+}
+
+// SetCsrAttributes gets a reference to the given []RequestAttributeDto and assigns it to the CsrAttributes field.
+func (o *ClientCertificateSignRequestDto) SetCsrAttributes(v []RequestAttributeDto) {
+	o.CsrAttributes = v
+}
+
+// GetSignatureAttributes returns the SignatureAttributes field value if set, zero value otherwise.
+func (o *ClientCertificateSignRequestDto) GetSignatureAttributes() []RequestAttributeDto {
+	if o == nil || IsNil(o.SignatureAttributes) {
+		var ret []RequestAttributeDto
+		return ret
+	}
+	return o.SignatureAttributes
+}
+
+// GetSignatureAttributesOk returns a tuple with the SignatureAttributes field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ClientCertificateSignRequestDto) GetSignatureAttributesOk() ([]RequestAttributeDto, bool) {
+	if o == nil || IsNil(o.SignatureAttributes) {
+		return nil, false
+	}
+	return o.SignatureAttributes, true
+}
+
+// HasSignatureAttributes returns a boolean if a field has been set.
+func (o *ClientCertificateSignRequestDto) HasSignatureAttributes() bool {
+	if o != nil && !IsNil(o.SignatureAttributes) {
+		return true
+	}
+
+	return false
+}
+
+// SetSignatureAttributes gets a reference to the given []RequestAttributeDto and assigns it to the SignatureAttributes field.
+func (o *ClientCertificateSignRequestDto) SetSignatureAttributes(v []RequestAttributeDto) {
+	o.SignatureAttributes = v
 }
 
 // GetPkcs10 returns the Pkcs10 field value
@@ -74,6 +147,70 @@ func (o *ClientCertificateSignRequestDto) SetPkcs10(v string) {
 	o.Pkcs10 = v
 }
 
+// GetTokenProfileUuid returns the TokenProfileUuid field value if set, zero value otherwise.
+func (o *ClientCertificateSignRequestDto) GetTokenProfileUuid() string {
+	if o == nil || IsNil(o.TokenProfileUuid) {
+		var ret string
+		return ret
+	}
+	return *o.TokenProfileUuid
+}
+
+// GetTokenProfileUuidOk returns a tuple with the TokenProfileUuid field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ClientCertificateSignRequestDto) GetTokenProfileUuidOk() (*string, bool) {
+	if o == nil || IsNil(o.TokenProfileUuid) {
+		return nil, false
+	}
+	return o.TokenProfileUuid, true
+}
+
+// HasTokenProfileUuid returns a boolean if a field has been set.
+func (o *ClientCertificateSignRequestDto) HasTokenProfileUuid() bool {
+	if o != nil && !IsNil(o.TokenProfileUuid) {
+		return true
+	}
+
+	return false
+}
+
+// SetTokenProfileUuid gets a reference to the given string and assigns it to the TokenProfileUuid field.
+func (o *ClientCertificateSignRequestDto) SetTokenProfileUuid(v string) {
+	o.TokenProfileUuid = &v
+}
+
+// GetKeyUuid returns the KeyUuid field value if set, zero value otherwise.
+func (o *ClientCertificateSignRequestDto) GetKeyUuid() string {
+	if o == nil || IsNil(o.KeyUuid) {
+		var ret string
+		return ret
+	}
+	return *o.KeyUuid
+}
+
+// GetKeyUuidOk returns a tuple with the KeyUuid field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ClientCertificateSignRequestDto) GetKeyUuidOk() (*string, bool) {
+	if o == nil || IsNil(o.KeyUuid) {
+		return nil, false
+	}
+	return o.KeyUuid, true
+}
+
+// HasKeyUuid returns a boolean if a field has been set.
+func (o *ClientCertificateSignRequestDto) HasKeyUuid() bool {
+	if o != nil && !IsNil(o.KeyUuid) {
+		return true
+	}
+
+	return false
+}
+
+// SetKeyUuid gets a reference to the given string and assigns it to the KeyUuid field.
+func (o *ClientCertificateSignRequestDto) SetKeyUuid(v string) {
+	o.KeyUuid = &v
+}
+
 // GetAttributes returns the Attributes field value
 func (o *ClientCertificateSignRequestDto) GetAttributes() []RequestAttributeDto {
 	if o == nil {
@@ -98,6 +235,38 @@ func (o *ClientCertificateSignRequestDto) SetAttributes(v []RequestAttributeDto)
 	o.Attributes = v
 }
 
+// GetCustomAttributes returns the CustomAttributes field value if set, zero value otherwise.
+func (o *ClientCertificateSignRequestDto) GetCustomAttributes() []RequestAttributeDto {
+	if o == nil || IsNil(o.CustomAttributes) {
+		var ret []RequestAttributeDto
+		return ret
+	}
+	return o.CustomAttributes
+}
+
+// GetCustomAttributesOk returns a tuple with the CustomAttributes field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ClientCertificateSignRequestDto) GetCustomAttributesOk() ([]RequestAttributeDto, bool) {
+	if o == nil || IsNil(o.CustomAttributes) {
+		return nil, false
+	}
+	return o.CustomAttributes, true
+}
+
+// HasCustomAttributes returns a boolean if a field has been set.
+func (o *ClientCertificateSignRequestDto) HasCustomAttributes() bool {
+	if o != nil && !IsNil(o.CustomAttributes) {
+		return true
+	}
+
+	return false
+}
+
+// SetCustomAttributes gets a reference to the given []RequestAttributeDto and assigns it to the CustomAttributes field.
+func (o *ClientCertificateSignRequestDto) SetCustomAttributes(v []RequestAttributeDto) {
+	o.CustomAttributes = v
+}
+
 func (o ClientCertificateSignRequestDto) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -108,8 +277,23 @@ func (o ClientCertificateSignRequestDto) MarshalJSON() ([]byte, error) {
 
 func (o ClientCertificateSignRequestDto) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if !IsNil(o.CsrAttributes) {
+		toSerialize["csrAttributes"] = o.CsrAttributes
+	}
+	if !IsNil(o.SignatureAttributes) {
+		toSerialize["signatureAttributes"] = o.SignatureAttributes
+	}
 	toSerialize["pkcs10"] = o.Pkcs10
+	if !IsNil(o.TokenProfileUuid) {
+		toSerialize["tokenProfileUuid"] = o.TokenProfileUuid
+	}
+	if !IsNil(o.KeyUuid) {
+		toSerialize["keyUuid"] = o.KeyUuid
+	}
 	toSerialize["attributes"] = o.Attributes
+	if !IsNil(o.CustomAttributes) {
+		toSerialize["customAttributes"] = o.CustomAttributes
+	}
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -154,8 +338,13 @@ func (o *ClientCertificateSignRequestDto) UnmarshalJSON(data []byte) (err error)
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "csrAttributes")
+		delete(additionalProperties, "signatureAttributes")
 		delete(additionalProperties, "pkcs10")
+		delete(additionalProperties, "tokenProfileUuid")
+		delete(additionalProperties, "keyUuid")
 		delete(additionalProperties, "attributes")
+		delete(additionalProperties, "customAttributes")
 		o.AdditionalProperties = additionalProperties
 	}
 

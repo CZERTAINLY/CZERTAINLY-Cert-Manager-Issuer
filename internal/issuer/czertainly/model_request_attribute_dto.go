@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.11.1-SNAPSHOT
+API version: 2.11.0
 Contact: getinfo@czertainly.com
 */
 
@@ -22,10 +22,9 @@ var _ MappedNullable = &RequestAttributeDto{}
 // RequestAttributeDto Request attribute to send attribute content for object
 type RequestAttributeDto struct {
 	// UUID of the Attribute
-	Uuid string `json:"uuid"`
+	Uuid *string `json:"uuid,omitempty"`
 	// Name of the Attribute
 	Name string `json:"name"`
-	ContentType AttributeContentType `json:"contentType"`
 	// Content of the Attribute
 	Content []BaseAttributeContentDto `json:"content"`
 	AdditionalProperties map[string]interface{}
@@ -37,11 +36,9 @@ type _RequestAttributeDto RequestAttributeDto
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewRequestAttributeDto(uuid string, name string, contentType AttributeContentType, content []BaseAttributeContentDto) *RequestAttributeDto {
+func NewRequestAttributeDto(name string, content []BaseAttributeContentDto) *RequestAttributeDto {
 	this := RequestAttributeDto{}
-	this.Uuid = uuid
 	this.Name = name
-	this.ContentType = contentType
 	this.Content = content
 	return &this
 }
@@ -54,28 +51,36 @@ func NewRequestAttributeDtoWithDefaults() *RequestAttributeDto {
 	return &this
 }
 
-// GetUuid returns the Uuid field value
+// GetUuid returns the Uuid field value if set, zero value otherwise.
 func (o *RequestAttributeDto) GetUuid() string {
-	if o == nil {
+	if o == nil || IsNil(o.Uuid) {
 		var ret string
 		return ret
 	}
-
-	return o.Uuid
+	return *o.Uuid
 }
 
-// GetUuidOk returns a tuple with the Uuid field value
+// GetUuidOk returns a tuple with the Uuid field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *RequestAttributeDto) GetUuidOk() (*string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.Uuid) {
 		return nil, false
 	}
-	return &o.Uuid, true
+	return o.Uuid, true
 }
 
-// SetUuid sets field value
+// HasUuid returns a boolean if a field has been set.
+func (o *RequestAttributeDto) HasUuid() bool {
+	if o != nil && !IsNil(o.Uuid) {
+		return true
+	}
+
+	return false
+}
+
+// SetUuid gets a reference to the given string and assigns it to the Uuid field.
 func (o *RequestAttributeDto) SetUuid(v string) {
-	o.Uuid = v
+	o.Uuid = &v
 }
 
 // GetName returns the Name field value
@@ -100,30 +105,6 @@ func (o *RequestAttributeDto) GetNameOk() (*string, bool) {
 // SetName sets field value
 func (o *RequestAttributeDto) SetName(v string) {
 	o.Name = v
-}
-
-// GetContentType returns the ContentType field value
-func (o *RequestAttributeDto) GetContentType() AttributeContentType {
-	if o == nil {
-		var ret AttributeContentType
-		return ret
-	}
-
-	return o.ContentType
-}
-
-// GetContentTypeOk returns a tuple with the ContentType field value
-// and a boolean to check if the value has been set.
-func (o *RequestAttributeDto) GetContentTypeOk() (*AttributeContentType, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.ContentType, true
-}
-
-// SetContentType sets field value
-func (o *RequestAttributeDto) SetContentType(v AttributeContentType) {
-	o.ContentType = v
 }
 
 // GetContent returns the Content field value
@@ -160,9 +141,10 @@ func (o RequestAttributeDto) MarshalJSON() ([]byte, error) {
 
 func (o RequestAttributeDto) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	toSerialize["uuid"] = o.Uuid
+	if !IsNil(o.Uuid) {
+		toSerialize["uuid"] = o.Uuid
+	}
 	toSerialize["name"] = o.Name
-	toSerialize["contentType"] = o.ContentType
 	toSerialize["content"] = o.Content
 
 	for key, value := range o.AdditionalProperties {
@@ -177,9 +159,7 @@ func (o *RequestAttributeDto) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
-		"uuid",
 		"name",
-		"contentType",
 		"content",
 	}
 
@@ -212,7 +192,6 @@ func (o *RequestAttributeDto) UnmarshalJSON(data []byte) (err error) {
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
 		delete(additionalProperties, "uuid")
 		delete(additionalProperties, "name")
-		delete(additionalProperties, "contentType")
 		delete(additionalProperties, "content")
 		o.AdditionalProperties = additionalProperties
 	}

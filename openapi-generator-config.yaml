@@ -1,0 +1,13 @@
+inputSpec: doc-openapi-cert-manager.yaml
+generatorName: go
+outputDir: internal/issuer/czertainly
+generateApiTests: false
+generateModelTests: false
+generateModelDocumentation: false
+generateApiDocumentation: false
+additionalProperties:
+  packageName: czertainly
+  isGoSubmodule: false
+  disallowAdditionalPropertiesIfNotPresent: false
+  enumClassPrefix: true
+  withGoMod: false

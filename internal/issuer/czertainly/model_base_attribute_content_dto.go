@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.11.1-SNAPSHOT
+API version: 2.11.0
 Contact: getinfo@czertainly.com
 */
 
@@ -299,22 +299,8 @@ func (dst *BaseAttributeContentDto) UnmarshalJSON(data []byte) error {
 	}
 
 	if match > 1 { // more than 1 match
-		// reset to nil
-		dst.BooleanAttributeContent = nil
-		dst.CodeBlockAttributeContent = nil
-		dst.CredentialAttributeContent = nil
-		dst.DateAttributeContent = nil
-		dst.DateTimeAttributeContent = nil
-		dst.FileAttributeContent = nil
-		dst.FloatAttributeContent = nil
-		dst.IntegerAttributeContent = nil
-		dst.ObjectAttributeContent = nil
-		dst.SecretAttributeContent = nil
-		dst.StringAttributeContent = nil
-		dst.TextAttributeContent = nil
-		dst.TimeAttributeContent = nil
-
-		return fmt.Errorf("data matches more than one schema in oneOf(BaseAttributeContentDto)")
+		// let's continue and pick the correct one later
+		return nil
 	} else if match == 1 {
 		return nil // exactly one match
 	} else { // no match

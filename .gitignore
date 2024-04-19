@@ -25,3 +25,9 @@ go.work
 *.swp
 *.swo
 *~
+
+/internal/controller/nogit*.go
+
+/kubernetes/
+/gentest/
+/internal/issuer/czertainly/.openapi-generator/

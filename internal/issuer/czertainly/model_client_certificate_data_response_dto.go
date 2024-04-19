@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.11.1-SNAPSHOT
+API version: 2.11.0
 Contact: getinfo@czertainly.com
 */
 
@@ -21,6 +21,8 @@ var _ MappedNullable = &ClientCertificateDataResponseDto{}
 
 // ClientCertificateDataResponseDto struct for ClientCertificateDataResponseDto
 type ClientCertificateDataResponseDto struct {
+	// Base64 encoded Certificate content
+	CertificateData *string `json:"certificateData,omitempty"`
 	// UUID of Certificate
 	Uuid string `json:"uuid"`
 	AdditionalProperties map[string]interface{}
@@ -44,6 +46,38 @@ func NewClientCertificateDataResponseDto(uuid string) *ClientCertificateDataResp
 func NewClientCertificateDataResponseDtoWithDefaults() *ClientCertificateDataResponseDto {
 	this := ClientCertificateDataResponseDto{}
 	return &this
+}
+
+// GetCertificateData returns the CertificateData field value if set, zero value otherwise.
+func (o *ClientCertificateDataResponseDto) GetCertificateData() string {
+	if o == nil || IsNil(o.CertificateData) {
+		var ret string
+		return ret
+	}
+	return *o.CertificateData
+}
+
+// GetCertificateDataOk returns a tuple with the CertificateData field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ClientCertificateDataResponseDto) GetCertificateDataOk() (*string, bool) {
+	if o == nil || IsNil(o.CertificateData) {
+		return nil, false
+	}
+	return o.CertificateData, true
+}
+
+// HasCertificateData returns a boolean if a field has been set.
+func (o *ClientCertificateDataResponseDto) HasCertificateData() bool {
+	if o != nil && !IsNil(o.CertificateData) {
+		return true
+	}
+
+	return false
+}
+
+// SetCertificateData gets a reference to the given string and assigns it to the CertificateData field.
+func (o *ClientCertificateDataResponseDto) SetCertificateData(v string) {
+	o.CertificateData = &v
 }
 
 // GetUuid returns the Uuid field value
@@ -80,6 +114,9 @@ func (o ClientCertificateDataResponseDto) MarshalJSON() ([]byte, error) {
 
 func (o ClientCertificateDataResponseDto) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if !IsNil(o.CertificateData) {
+		toSerialize["certificateData"] = o.CertificateData
+	}
 	toSerialize["uuid"] = o.Uuid
 
 	for key, value := range o.AdditionalProperties {
@@ -124,6 +161,7 @@ func (o *ClientCertificateDataResponseDto) UnmarshalJSON(data []byte) (err error
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "certificateData")
 		delete(additionalProperties, "uuid")
 		o.AdditionalProperties = additionalProperties
 	}
