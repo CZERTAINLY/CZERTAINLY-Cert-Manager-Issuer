@@ -151,7 +151,7 @@ func (o *czertainlySigner) Sign(ctx context.Context, csrBytes []byte) ([]byte, e
 	authorityUuid := raProfileDto.AuthorityInstanceUuid
 
 	issueCertificateRequest := czertainly.ClientCertificateSignRequestDto{
-		Pkcs10:     string(csrBytes),
+		Request:    string(csrBytes),
 		Attributes: []czertainly.RequestAttributeDto{},
 	}
 

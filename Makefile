@@ -250,11 +250,13 @@ endef
 
 ##@ OpenAPI
 
+API_VERSION ?= 2.13.0
+
 .PHONY: openapi-clean
 openapi-clean: ## Clear the OpenAPI generated files
 	rm -rf internal/issuer/czertainly/*
 
 .PHONY: openapi-generate
 openapi-generate: ## Generate the OpenAPI client
-	openapi-generator-cli generate --config openapi-generator-config.yaml
-	patch -p0 < openapi.patch
+	openapi-generator-cli generate --config openapi-generator-config-${API_VERSION}.yaml
+	patch -p0 < openapi-${API_VERSION}.patch

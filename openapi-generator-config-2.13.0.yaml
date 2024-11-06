@@ -1,4 +1,4 @@
-inputSpec: doc-openapi-cert-manager.yaml
+inputSpec: doc-openapi-cert-manager-2.13.0.yaml
 generatorName: go
 outputDir: internal/issuer/czertainly
 generateApiTests: false
