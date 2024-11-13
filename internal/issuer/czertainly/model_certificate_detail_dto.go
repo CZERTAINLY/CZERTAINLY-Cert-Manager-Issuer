@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.0
+API version: 2.13.1
 Contact: info@czertainly.com
 */
 
@@ -69,8 +69,7 @@ type CertificateDetailDto struct {
 	ExtendedKeyUsage []string `json:"extendedKeyUsage,omitempty"`
 	// Key usages
 	KeyUsage []string `json:"keyUsage"`
-	// Basic Constraints
-	BasicConstraints string `json:"basicConstraints"`
+	SubjectType CertificateSubjectType `json:"subjectType"`
 	// Certificate metadata
 	Metadata []MetadataResponseDto `json:"metadata,omitempty"`
 	// Base64 encoded Certificate content
@@ -103,7 +102,7 @@ type _CertificateDetailDto CertificateDetailDto
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCertificateDetailDto(uuid string, commonName string, subjectDn string, publicKeyAlgorithm string, signatureAlgorithm string, keySize int32, state CertificateState, validationStatus CertificateValidationStatus, privateKeyAvailability bool, trustedCa bool, keyUsage []string, basicConstraints string, certificateContent string) *CertificateDetailDto {
+func NewCertificateDetailDto(uuid string, commonName string, subjectDn string, publicKeyAlgorithm string, signatureAlgorithm string, keySize int32, state CertificateState, validationStatus CertificateValidationStatus, privateKeyAvailability bool, trustedCa bool, keyUsage []string, subjectType CertificateSubjectType, certificateContent string) *CertificateDetailDto {
 	this := CertificateDetailDto{}
 	this.Uuid = uuid
 	this.CommonName = commonName
@@ -116,7 +115,7 @@ func NewCertificateDetailDto(uuid string, commonName string, subjectDn string, p
 	this.PrivateKeyAvailability = privateKeyAvailability
 	this.TrustedCa = trustedCa
 	this.KeyUsage = keyUsage
-	this.BasicConstraints = basicConstraints
+	this.SubjectType = subjectType
 	this.CertificateContent = certificateContent
 	return &this
 }
@@ -873,28 +872,28 @@ func (o *CertificateDetailDto) SetKeyUsage(v []string) {
 	o.KeyUsage = v
 }
 
-// GetBasicConstraints returns the BasicConstraints field value
-func (o *CertificateDetailDto) GetBasicConstraints() string {
+// GetSubjectType returns the SubjectType field value
+func (o *CertificateDetailDto) GetSubjectType() CertificateSubjectType {
 	if o == nil {
-		var ret string
+		var ret CertificateSubjectType
 		return ret
 	}
 
-	return o.BasicConstraints
+	return o.SubjectType
 }
 
-// GetBasicConstraintsOk returns a tuple with the BasicConstraints field value
+// GetSubjectTypeOk returns a tuple with the SubjectType field value
 // and a boolean to check if the value has been set.
-func (o *CertificateDetailDto) GetBasicConstraintsOk() (*string, bool) {
+func (o *CertificateDetailDto) GetSubjectTypeOk() (*CertificateSubjectType, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return &o.BasicConstraints, true
+	return &o.SubjectType, true
 }
 
-// SetBasicConstraints sets field value
-func (o *CertificateDetailDto) SetBasicConstraints(v string) {
-	o.BasicConstraints = v
+// SetSubjectType sets field value
+func (o *CertificateDetailDto) SetSubjectType(v CertificateSubjectType) {
+	o.SubjectType = v
 }
 
 // GetMetadata returns the Metadata field value if set, zero value otherwise.
@@ -1371,7 +1370,7 @@ func (o CertificateDetailDto) ToMap() (map[string]interface{}, error) {
 		toSerialize["extendedKeyUsage"] = o.ExtendedKeyUsage
 	}
 	toSerialize["keyUsage"] = o.KeyUsage
-	toSerialize["basicConstraints"] = o.BasicConstraints
+	toSerialize["subjectType"] = o.SubjectType
 	if !IsNil(o.Metadata) {
 		toSerialize["metadata"] = o.Metadata
 	}
@@ -1486,7 +1485,7 @@ func (o *CertificateDetailDto) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "trustedCa")
 		delete(additionalProperties, "extendedKeyUsage")
 		delete(additionalProperties, "keyUsage")
-		delete(additionalProperties, "basicConstraints")
+		delete(additionalProperties, "subjectType")
 		delete(additionalProperties, "metadata")
 		delete(additionalProperties, "certificateContent")
 		delete(additionalProperties, "subjectAlternativeNames")

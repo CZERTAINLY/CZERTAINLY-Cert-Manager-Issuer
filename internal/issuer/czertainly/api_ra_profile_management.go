@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.0
+API version: 2.13.1
 Contact: info@czertainly.com
 */
 
@@ -110,8 +110,8 @@ func (a *RAProfileManagementAPIService) GetRaProfileWithoutAuthorityExecute(r Ap
 			body:  localVarBody,
 			error: localVarHTTPResponse.Status,
 		}
-		if localVarHTTPResponse.StatusCode == 403 {
-			var v AuthenticationServiceExceptionDto
+		if localVarHTTPResponse.StatusCode == 400 {
+			var v ErrorMessageDto
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()
@@ -121,7 +121,7 @@ func (a *RAProfileManagementAPIService) GetRaProfileWithoutAuthorityExecute(r Ap
 					newErr.model = v
 			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
-		if localVarHTTPResponse.StatusCode == 400 {
+		if localVarHTTPResponse.StatusCode == 502 {
 			var v ErrorMessageDto
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 			if err != nil {
@@ -143,8 +143,8 @@ func (a *RAProfileManagementAPIService) GetRaProfileWithoutAuthorityExecute(r Ap
 					newErr.model = v
 			return localVarReturnValue, localVarHTTPResponse, newErr
 		}
-		if localVarHTTPResponse.StatusCode == 502 {
-			var v ErrorMessageDto
+		if localVarHTTPResponse.StatusCode == 403 {
+			var v AuthenticationServiceExceptionDto
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 			if err != nil {
 				newErr.error = err.Error()

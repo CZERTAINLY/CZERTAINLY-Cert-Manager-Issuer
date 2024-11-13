@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.0
+API version: 2.13.1
 Contact: info@czertainly.com
 */
 
@@ -91,7 +91,7 @@ func NewConfiguration() *Configuration {
 		Debug:            false,
 		Servers:          ServerConfigurations{
 			{
-				URL: "http://localhost:54253",
+				URL: "http://localhost:35047",
 				Description: "Generated server url",
 			},
 		},

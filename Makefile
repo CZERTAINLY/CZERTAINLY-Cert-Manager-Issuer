@@ -250,7 +250,7 @@ endef
 
 ##@ OpenAPI
 
-API_VERSION ?= 2.13.0
+API_VERSION ?= 2.13.1
 
 .PHONY: openapi-clean
 openapi-clean: ## Clear the OpenAPI generated files
@@ -258,5 +258,7 @@ openapi-clean: ## Clear the OpenAPI generated files
 
 .PHONY: openapi-generate
 openapi-generate: ## Generate the OpenAPI client
-	openapi-generator-cli generate --config openapi-generator-config-${API_VERSION}.yaml
-	patch -p0 < openapi-${API_VERSION}.patch
+	openapi-generator-cli generate \
+      --input-spec https://raw.githubusercontent.com/CZERTAINLY/CZERTAINLY-Interface-Documentation/refs/heads/gh-pages/${API_VERSION}/doc-openapi-cert-manager.yaml \
+      --config openapi-generator-config.yaml
+	patch -p0 < openapi-patch/openapi-${API_VERSION}.patch
