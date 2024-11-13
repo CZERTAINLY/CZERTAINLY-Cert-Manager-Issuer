@@ -8,7 +8,7 @@ import (
 type IssuerSpec struct {
 	// ApiUrl is the URL to access CZERTAINLY platform API,
 	// for example: "https://my.czertainly.com/api".
-	ApiUrl string `json:"serverUrl"`
+	ApiUrl string `json:"apiUrl"`
 
 	// AuthSecretName is a reference to a kubernetes.io/tls Secret that is
 	// used to authenticate and authorize to CZERTAINLY platform.

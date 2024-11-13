@@ -39,6 +39,11 @@ spec:
           spec:
             description: IssuerSpec defines the desired state of Issuer
             properties:
+              apiUrl:
+                description: |-
+                  ApiUrl is the URL to access CZERTAINLY platform API,
+                  for example: "https://my.czertainly.com/api".
+                type: string
               authSecretName:
                 description: |-
                   AuthSecretName is a reference to a kubernetes.io/tls Secret that is
@@ -71,15 +76,10 @@ spec:
                   You can get the UUID of configured RA profile in the CZERTAINLY platform. The user
                   should have permission to use the RA profile.
                 type: string
-              serverUrl:
-                description: |-
-                  ApiUrl is the URL to access CZERTAINLY platform API,
-                  for example: "https://my.czertainly.com/api".
-                type: string
             required:
+            - apiUrl
             - authSecretName
             - raProfileUuid
-            - serverUrl
             type: object
           status:
             description: IssuerStatus defines the observed state of Issuer

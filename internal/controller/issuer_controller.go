@@ -24,7 +24,7 @@ const (
 )
 
 var (
-	errServerUrl            = errors.New("server URL is not set")
+	errApiUrl               = errors.New("API URL is not set")
 	errRaProfileName        = errors.New("RA profile name is not set")
 	errGetAuthSecret        = errors.New("failed to get Secret containing Issuer credentials")
 	errGetCaBundleSecret    = errors.New("failed to get Secret containing CA bundle")
