@@ -42,9 +42,26 @@ jobs:
             echo "EOF" >> $GITHUB_ENV
           fi
 
+      - name: Check if chart version is develop
+        if: env.changed == 'true'
+        env:
+          changed_charts: ${{ env.changed_charts }}
+        run: |
+          #echo "${changed}"
+          #echo "${changed_charts}"
+          for CHART in $changed_charts
+          do
+            echo "Checking chart $CHART for develop version"
+            version=$(yq ".version" < ${CHART}/Chart.yaml)
+            if [[ $version != *-develop ]]; then
+              echo "Chart $CHART changed, but not intended for develop" 
+              exit 1
+            fi
+          done
+
       - name: Run chart-testing (lint)
         if: env.changed == 'true'
-        run: ct lint --target-branch develop --chart-dirs deploy/charts
+        run: ct lint --target-branch develop --chart-dirs deploy/charts --check-version-increment=false
 
       - name: Create kind cluster
         uses: helm/kind-action@v1.9.0
