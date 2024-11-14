@@ -718,7 +718,7 @@ func TestCertificateRequestReconcile(t *testing.T) {
 				// this should be reflected in the Event message.
 				eventMessage := condition.Message
 				if reconcileErr != nil {
-					eventMessage = fmt.Sprintf("Temporary error. Retrying: %v", reconcileErr)
+					eventMessage = fmt.Sprintf("Request failed: %v", reconcileErr)
 				}
 				// Each Reconcile should only emit a single Event
 				assert.Equal(
