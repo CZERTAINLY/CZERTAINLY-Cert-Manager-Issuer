@@ -135,7 +135,8 @@ func (r *CertificateRequestReconciler) Reconcile(ctx context.Context, req ctrl.R
 	// Always attempt to update the Ready condition
 	defer func() {
 		if err != nil {
-			report(cmapi.CertificateRequestReasonPending, "Temporary error. Retrying", err)
+			//report(cmapi.CertificateRequestReasonPending, "Temporary error. Retrying", err)
+			report(cmapi.CertificateRequestReasonFailed, "Request failed", err)
 		}
 		if updateErr := r.Status().Update(ctx, &certificateRequest); updateErr != nil {
 			err = utilerrors.NewAggregate([]error{err, updateErr})
