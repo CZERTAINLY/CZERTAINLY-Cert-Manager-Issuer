@@ -1,0 +1,13 @@
+{{- if .Values.metrics.protect }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    {{- include "czertainly-issuer.labels" . | nindent 4 }}
+  name: {{ include "czertainly-issuer.name" . }}-metrics-reader
+rules:
+  - nonResourceURLs:
+      - "/metrics"
+    verbs:
+      - get
+{{- end }}

@@ -1,0 +1,17 @@
+{{- if .Values.metrics.protect }}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    {{- include "czertainly-issuer.labels" . | nindent 4 }}
+  name: {{ include "czertainly-issuer.name" . }}-metrics-service
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+    - name: https
+      port: 8443
+      protocol: TCP
+      targetPort: https
+  selector:
+    {{- include "czertainly-issuer.selectorLabels" . | nindent 4 }}
+{{- end }}
