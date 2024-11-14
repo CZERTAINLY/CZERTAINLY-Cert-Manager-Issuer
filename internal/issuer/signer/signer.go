@@ -174,17 +174,30 @@ func (o *czertainlySigner) Sign(ctx context.Context, csrBytes []byte) ([]byte, e
 			return nil, err
 		}
 		state = s
-		if state == czertainly.CERTIFICATESTATE_ISSUED || state == czertainly.CERTIFICATESTATE_FAILED || state == czertainly.CERTIFICATESTATE_REJECTED {
+		if state == czertainly.CERTIFICATESTATE_ISSUED {
+			l.Info(fmt.Sprintf("Certificate request processed sucessfully: uuid=%s", uuid))
 			cert = c
 			break
+		} else if state == czertainly.CERTIFICATESTATE_FAILED {
+			l.Info(fmt.Sprintf("Certificate request failed: uuid=%s", uuid))
+			return nil, errors.New("certificate request failed")
+		} else if state == czertainly.CERTIFICATESTATE_REJECTED {
+			l.Info(fmt.Sprintf("Certificate request rejected: uuid=%s", uuid))
+			return nil, errors.New("certificate request rejected")
 		} else {
 			// wait for 1 second and check again
 			time.Sleep(1 * time.Second)
 		}
 	}
 
+	// check that issued certificate is not empty
+	if cert == "" {
+		return nil, errors.New("issued certificate is empty")
+	}
+
 	decodedCert, err := base64.StdEncoding.DecodeString(cert)
 	if err != nil {
+		l.Error(err, "Failed to decode certificate: %s", cert)
 		return nil, err
 	}
 
@@ -203,7 +216,7 @@ func (o *czertainlySigner) waitForCertificate(ctx context.Context, uuid string) 
 	state := certificateDetailDto.State
 	cert := certificateDetailDto.CertificateContent
 
-	if state == "issued" {
+	if state == czertainly.CERTIFICATESTATE_ISSUED {
 		return state, cert, nil
 	} else {
 		return state, "", nil
