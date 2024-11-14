@@ -1,0 +1,74 @@
+name: Test chart for master
+on:
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.10.0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+          check-latest: true
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.6.1
+
+      - name: Run chart-testing (list-changed)
+        id: list-changed
+        run: |
+          changed=$(ct list-changed --target-branch master --chart-dirs deploy/charts)
+          echo "${changed}"
+          if [[ -n "$changed" ]]; then
+            echo "changed=true" >> $GITHUB_ENV
+          
+            # multiline string
+            echo "changed_charts<<EOF" >> $GITHUB_ENV
+            echo "$changed" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV            
+          fi
+
+      - name: Check that chart version does not contain develop
+        if: env.changed == 'true'
+        env:
+          changed_charts: ${{ env.changed_charts }}
+        run: |
+          #echo "${changed}"
+          #echo "${changed_charts}"
+          for CHART in $changed_charts
+          do
+            echo "Checking chart $CHART for develop version"
+            version=$(yq ".version" < ${CHART}/Chart.yaml)
+            if [[ $version == *-develop ]]; then
+              echo "Chart $CHART contains develop, but not intended for develop" 
+              exit 1
+            fi
+          done
+
+      - name: Run chart-testing (lint)
+        run: ct lint --target-branch master --chart-dirs deploy/charts --check-version-increment=false
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1.9.0
+        if: env.changed == 'true'
+
+      - name: Create testing namespace
+        if: env.changed == 'true'
+        run: kubectl create namespace chart-testing
+
+      - name: Run chart-testing (install)
+        run: ct install --namespace chart-testing --target-branch master --chart-dirs deploy/charts
