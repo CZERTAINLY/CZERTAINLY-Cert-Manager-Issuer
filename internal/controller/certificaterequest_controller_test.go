@@ -275,7 +275,7 @@ func TestCertificateRequestReconcile(t *testing.T) {
 			},
 			expectedError:                errGetIssuer,
 			expectedReadyConditionStatus: cmmeta.ConditionFalse,
-			expectedReadyConditionReason: cmapi.CertificateRequestReasonPending,
+			expectedReadyConditionReason: cmapi.CertificateRequestReasonFailed,
 		},
 		"clusterissuer-not-found": {
 			name: types.NamespacedName{Namespace: "ns1", Name: "cr1"},
@@ -300,7 +300,7 @@ func TestCertificateRequestReconcile(t *testing.T) {
 			},
 			expectedError:                errGetIssuer,
 			expectedReadyConditionStatus: cmmeta.ConditionFalse,
-			expectedReadyConditionReason: cmapi.CertificateRequestReasonPending,
+			expectedReadyConditionReason: cmapi.CertificateRequestReasonFailed,
 		},
 		"issuer-not-ready": {
 			name: types.NamespacedName{Namespace: "ns1", Name: "cr1"},
@@ -341,7 +341,7 @@ func TestCertificateRequestReconcile(t *testing.T) {
 			},
 			expectedError:                errIssuerNotReady,
 			expectedReadyConditionStatus: cmmeta.ConditionFalse,
-			expectedReadyConditionReason: cmapi.CertificateRequestReasonPending,
+			expectedReadyConditionReason: cmapi.CertificateRequestReasonFailed,
 		},
 		"issuer-secret-not-found": {
 			name: types.NamespacedName{Namespace: "ns1", Name: "cr1"},
@@ -385,7 +385,7 @@ func TestCertificateRequestReconcile(t *testing.T) {
 			},
 			expectedError:                errGetAuthSecret,
 			expectedReadyConditionStatus: cmmeta.ConditionFalse,
-			expectedReadyConditionReason: cmapi.CertificateRequestReasonPending,
+			expectedReadyConditionReason: cmapi.CertificateRequestReasonFailed,
 		},
 		"signer-builder-error": {
 			name: types.NamespacedName{Namespace: "ns1", Name: "cr1"},
@@ -440,7 +440,7 @@ func TestCertificateRequestReconcile(t *testing.T) {
 			},
 			expectedError:                errSignerBuilder,
 			expectedReadyConditionStatus: cmmeta.ConditionFalse,
-			expectedReadyConditionReason: cmapi.CertificateRequestReasonPending,
+			expectedReadyConditionReason: cmapi.CertificateRequestReasonFailed,
 		},
 		"signer-error": {
 			name: types.NamespacedName{Namespace: "ns1", Name: "cr1"},
@@ -495,7 +495,7 @@ func TestCertificateRequestReconcile(t *testing.T) {
 			},
 			expectedError:                errSignerSign,
 			expectedReadyConditionStatus: cmmeta.ConditionFalse,
-			expectedReadyConditionReason: cmapi.CertificateRequestReasonPending,
+			expectedReadyConditionReason: cmapi.CertificateRequestReasonFailed,
 		},
 		"request-not-approved": {
 			name: types.NamespacedName{Namespace: "ns1", Name: "cr1"},
