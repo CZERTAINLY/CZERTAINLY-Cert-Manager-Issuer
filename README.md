@@ -27,7 +27,7 @@ make openapi-clean
 
 Create new kind cluster for development purposes:
 ```bash
-make kind-cluster deploy-cert-manager install
+make kind-cluster deploy-cert-manager install install-rbac
 ```
 
 This will create a new kind cluster, deploy cert-manager and install the CRDs of the CZERTAINLY issuer.
