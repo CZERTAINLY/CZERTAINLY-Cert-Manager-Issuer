@@ -72,4 +72,6 @@ jobs:
         run: kubectl create namespace chart-testing
 
       - name: Run chart-testing (install)
-        run: ct install --namespace chart-testing --target-branch develop --chart-dirs deploy/charts
+        run: |
+          kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.11.1/cert-manager.crds.yaml
+          ct install --namespace chart-testing --target-branch develop --chart-dirs deploy/charts
