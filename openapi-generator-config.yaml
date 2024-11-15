@@ -1,5 +1,5 @@
 generatorName: go
-outputDir: internal/issuer/czertainly
+outputDir: internal/signer/czertainly
 generateApiTests: false
 generateModelTests: false
 generateModelDocumentation: false

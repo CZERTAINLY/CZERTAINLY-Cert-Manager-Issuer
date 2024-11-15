@@ -254,7 +254,7 @@ API_VERSION ?= 2.13.1
 
 .PHONY: openapi-clean
 openapi-clean: ## Clear the OpenAPI generated files
-	rm -rf internal/issuer/czertainly/*
+	rm -rf internal/signer/czertainly/*
 
 .PHONY: openapi-generate
 openapi-generate: ## Generate the OpenAPI client

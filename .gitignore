@@ -30,7 +30,7 @@ go.work
 
 /kubernetes/
 /gentest/
-/internal/issuer/czertainly/.openapi-generator/
+/internal/signer/czertainly/.openapi-generator/
 
 # Downloaded chart dependencies
 **/charts/*.tgz

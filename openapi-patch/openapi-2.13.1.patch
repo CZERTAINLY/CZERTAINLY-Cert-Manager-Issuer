@@ -1,4 +1,4 @@
-+++ internal/issuer/czertainly/model_base_attribute_content_dto.go
++++ internal/signer/czertainly/model_base_attribute_content_dto.go
 @@ -299,22 +299,8 @@
  	}
  
@@ -25,7 +25,7 @@
  		return nil // exactly one match
  	} else { // no match
 
-+++ internal/issuer/czertainly/model_certificate_detail_dto.go
++++ internal/signer/czertainly/model_certificate_detail_dto.go
 @@ -75,7 +75,7 @@
  	// Base64 encoded Certificate content
  	CertificateContent string `json:"certificateContent"`
@@ -79,7 +79,7 @@
  
  	allProperties := make(map[string]interface{})
 
-+++ internal/issuer/czertainly/model_certificate_request_dto.go
++++ internal/signer/czertainly/model_certificate_request_dto.go
 @@ -34,7 +34,7 @@
  	// Subject DN of the Certificate
  	SubjectDn string `json:"subjectDn"`
