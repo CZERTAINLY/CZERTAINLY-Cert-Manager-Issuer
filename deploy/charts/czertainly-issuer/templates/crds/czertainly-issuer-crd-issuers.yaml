@@ -6,7 +6,7 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: issuers.czertainly-issuer.czertainly.com
+  name: czertainlyissuers.czertainly-issuer.czertainly.com
 spec:
   group: czertainly-issuer.czertainly.com
   names:
