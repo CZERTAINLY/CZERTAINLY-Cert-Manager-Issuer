@@ -7,7 +7,6 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   name: clusterissuers.czertainly-issuer.czertainly.com
----
 spec:
   group: czertainly-issuer.czertainly.com
   names:
