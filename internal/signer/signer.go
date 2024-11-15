@@ -9,7 +9,9 @@ import (
 	"errors"
 	"fmt"
 	czertainlyissuerapi "github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer/api/v1alpha1"
-	"github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer/internal/issuer/czertainly"
+	"github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer/internal/controllers"
+	"github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer/internal/signer/czertainly"
+	"github.com/cert-manager/issuer-lib/controllers/signer"
 	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"time"
@@ -22,21 +24,9 @@ type czertainlySigner struct {
 	raProfileName string
 }
 
-type HealthChecker interface {
-	Check() error
-}
-
-type HealthCheckerBuilder func(context.Context, *czertainlyissuerapi.IssuerSpec, map[string][]byte, map[string][]byte) (HealthChecker, error)
-
-type Signer interface {
-	Sign(context.Context, []byte) ([]byte, error)
-}
-
-type SignerBuilder func(context.Context, *czertainlyissuerapi.IssuerSpec, map[string][]byte, map[string][]byte, map[string]string) (Signer, error)
-
-func CzertainlyHealthCheckerFromIssuerAndSecretData(ctx context.Context, issuerSpec *czertainlyissuerapi.IssuerSpec, authSecretData map[string][]byte, caBundleSecretData map[string][]byte) (HealthChecker, error) {
+func CzertainlyHealthCheckerFromIssuerAndSecretData(ctx context.Context, issuerSpec *czertainlyissuerapi.IssuerSpec, authSecretData map[string][]byte, caBundleSecretData map[string][]byte) (controllers.HealthChecker, error) {
 	// l := log.FromContext(ctx)
-	signer := czertainlySigner{}
+	czertainlySigner := czertainlySigner{}
 
 	czertainlyConfig := czertainly.NewConfiguration()
 
@@ -51,9 +41,9 @@ func CzertainlyHealthCheckerFromIssuerAndSecretData(ctx context.Context, issuerS
 
 	czertainlyConfig.HTTPClient = client
 
-	signer.httpClient = czertainly.NewAPIClient(czertainlyConfig)
+	czertainlySigner.httpClient = czertainly.NewAPIClient(czertainlyConfig)
 
-	return &signer, nil
+	return &czertainlySigner, nil
 }
 
 func createHttpClient(ctx context.Context, issuerSpec *czertainlyissuerapi.IssuerSpec, authSecretData map[string][]byte, caBundleSecretData map[string][]byte) (*http.Client, error) {
@@ -82,9 +72,9 @@ func createHttpClient(ctx context.Context, issuerSpec *czertainlyissuerapi.Issue
 	return client, nil
 }
 
-func CzertainlySignerFromIssuerAndSecretData(ctx context.Context, issuerSpec *czertainlyissuerapi.IssuerSpec, authSecretData map[string][]byte, caBundleSecretData map[string][]byte, annotations map[string]string) (Signer, error) {
+func CzertainlySignerFromIssuerAndSecretData(ctx context.Context, issuerSpec *czertainlyissuerapi.IssuerSpec, authSecretData map[string][]byte, caBundleSecretData map[string][]byte, annotations map[string]string) (controllers.Signer, error) {
 	// l := log.FromContext(ctx)
-	signer := czertainlySigner{}
+	czertainlySigner := czertainlySigner{}
 
 	czertainlyConfig := czertainly.NewConfiguration()
 
@@ -99,15 +89,15 @@ func CzertainlySignerFromIssuerAndSecretData(ctx context.Context, issuerSpec *cz
 
 	czertainlyConfig.HTTPClient = client
 
-	signer.httpClient = czertainly.NewAPIClient(czertainlyConfig)
+	czertainlySigner.httpClient = czertainly.NewAPIClient(czertainlyConfig)
 
 	if issuerSpec.RaProfileUuid == "" {
 		return nil, errors.New("RA profile uuid is not set")
 	}
 
-	signer.raProfileUuid = issuerSpec.RaProfileUuid
+	czertainlySigner.raProfileUuid = issuerSpec.RaProfileUuid
 
-	return &signer, nil
+	return &czertainlySigner, nil
 }
 
 func (o *czertainlySigner) Check() error {
@@ -138,8 +128,13 @@ type CertDetailsResponse struct {
 	CertificateContent string `json:"certificateContent"`
 }
 
-func (o *czertainlySigner) Sign(ctx context.Context, csrBytes []byte) ([]byte, error) {
+func (o *czertainlySigner) Sign(ctx context.Context, cr signer.CertificateRequestObject) ([]byte, error) {
 	l := log.FromContext(ctx)
+
+	_, _, csrBytes, err := cr.GetRequest()
+	if err != nil {
+		return nil, err
+	}
 
 	l.Info(fmt.Sprintf("Processing CSR: %s", string(csrBytes)))
 

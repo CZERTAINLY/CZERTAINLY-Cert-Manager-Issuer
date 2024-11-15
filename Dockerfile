@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM golang:1.21 AS builder
+FROM golang:1.23 as builder
 ARG TARGETOS
 ARG TARGETARCH
 
@@ -12,7 +12,7 @@ COPY go.sum go.sum
 RUN go mod download
 
 # Copy the go source
-COPY cmd/main.go cmd/main.go
+COPY main.go main.go
 COPY api/ api/
 COPY internal/ internal/
 
@@ -35,7 +35,7 @@ ARG VERSION
 RUN go build \
   -ldflags="-X=github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer/internal/version.Version=${VERSION}" \
   -mod=readonly \
-  -o manager cmd/main.go
+  -o manager main.go
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details

@@ -1,5 +1,5 @@
 apiVersion: czertainly-issuer.czertainly.com/v1alpha1
-kind: ClusterIssuer
+kind: CzertainlyClusterIssuer
 metadata:
   labels:
     app.kubernetes.io/name: czertainly-clusterissuer

@@ -2,8 +2,8 @@
 # since it depends on service name and namespace that are out of this kustomize package.
 # It should be run by config/default
 resources:
-- bases/czertainly-issuer.czertainly.com_issuers.yaml
-- bases/czertainly-issuer.czertainly.com_clusterissuers.yaml
+- bases/czertainly-issuer.czertainly.com_czertainlyissuers.yaml
+- bases/czertainly-issuer.czertainly.com_czertainlyclusterissuers.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 
 patches:

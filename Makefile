@@ -121,11 +121,11 @@ e2e: ## Run E2E tests
 
 .PHONY: build
 build: manifests generate fmt vet ## Build manager binary.
-	go build -o bin/manager cmd/main.go
+	go build -o bin/manager main.go
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
-	go run ./cmd/main.go
+	go run ./main.go
 
 # If you wish to build the manager image targeting other platforms you can use the --platform flag.
 # (i.e. docker build --platform linux/arm64). However, you must enable docker buildKit for it.
@@ -254,7 +254,7 @@ API_VERSION ?= 2.13.1
 
 .PHONY: openapi-clean
 openapi-clean: ## Clear the OpenAPI generated files
-	rm -rf internal/issuer/czertainly/*
+	rm -rf internal/signer/czertainly/*
 
 .PHONY: openapi-generate
 openapi-generate: ## Generate the OpenAPI client

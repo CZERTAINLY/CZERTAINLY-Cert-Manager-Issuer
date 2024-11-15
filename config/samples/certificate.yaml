@@ -7,5 +7,5 @@ spec:
   commonName: czertainly-issuer-cert-manager
   issuerRef:
     name: clusterissuer-czertainly
-    kind: ClusterIssuer
+    kind: CzertainlyClusterIssuer
     group: czertainly-issuer.czertainly.com
