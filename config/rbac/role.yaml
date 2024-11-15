@@ -38,8 +38,8 @@ rules:
 - apiGroups:
   - czertainly-issuer.czertainly.com
   resources:
-  - clusterissuers
-  - issuers
+  - czertainlyclusterissuers
+  - czertainlyissuers
   verbs:
   - get
   - list
@@ -47,8 +47,8 @@ rules:
 - apiGroups:
   - czertainly-issuer.czertainly.com
   resources:
-  - clusterissuers/status
-  - issuers/status
+  - czertainlyclusterissuers/status
+  - czertainlyissuers/status
   verbs:
   - get
   - patch

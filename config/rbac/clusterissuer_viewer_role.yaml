@@ -14,7 +14,7 @@ rules:
 - apiGroups:
   - czertainly-issuer.czertainly.com
   resources:
-  - clusterissuers
+  - czertainlyclusterissuers
   verbs:
   - get
   - list
@@ -22,6 +22,6 @@ rules:
 - apiGroups:
   - czertainly-issuer.czertainly.com
   resources:
-  - clusterissuers/status
+  - czertainlyclusterissuers/status
   verbs:
   - get

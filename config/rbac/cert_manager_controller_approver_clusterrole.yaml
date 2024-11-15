@@ -11,5 +11,5 @@ rules:
     verbs:
       - approve
     resourceNames:
-      - issuers.czertainly-issuer.czertainly.com/*
-      - clusterissuers.czertainly-issuer.czertainly.com/*
+      - czertainlyissuers.czertainly-issuer.czertainly.com/*
+      - czertainlyclusterissuers.czertainly-issuer.czertainly.com/*
