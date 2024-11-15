@@ -5,52 +5,40 @@ metadata:
     {{- include "czertainly-issuer.labels" . | nindent 4 }}
   name: {{ include "czertainly-issuer.name" . }}-manager-role
 rules:
-  - apiGroups:
-      - ""
-    resources:
-      - events
-    verbs:
-      - create
-      - patch
-  - apiGroups:
-      - ""
-    resources:
-      - secrets
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
-      - cert-manager.io
-    resources:
-      - certificaterequests
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
-      - cert-manager.io
-    resources:
-      - certificaterequests/status
-    verbs:
-      - get
-      - patch
-      - update
-  - apiGroups:
-      - czertainly-issuer.czertainly.com
-    resources:
-      - czertainlyclusterissuers
-      - czertainlyissuers
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
-      - czertainly-issuer.czertainly.com
-    resources:
-      - czertainlyclusterissuers/status
-      - czertainlyissuers/status
-    verbs:
-      - get
-      - patch
-      - update
+  - apiGroups: [ "" ]
+    resources: [ "events" ]
+    verbs: ["create", "patch"]
+
+  - apiGroups: [ "" ]
+    resources: [ "secrets" ]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: [ "cert-manager.io" ]
+    resources: [ "certificaterequests" ]
+    verbs: [ "get", "list", "watch" ]
+
+  - apiGroups: [ "cert-manager.io" ]
+    resources: [ "certificaterequests/status" ]
+    verbs: [ "get", "patch", "update" ]
+
+  - apiGroups: [ "czertainly-issuer.czertainly.com" ]
+    resources: [ "czertainlyclusterissuers", "czertainlyissuers" ]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: [ "czertainly-issuer.czertainly.com" ]
+    resources: [ "czertainlyclusterissuers/status", "czertainlyissuers/status" ]
+    verbs: [ "get", "patch", "update" ]
+
+  - apiGroups: [ "certificates.k8s.io" ]
+    resources: [ "certificatesigningrequests" ]
+    verbs: [ "get", "list", "watch" ]
+
+  - apiGroups: [ "certificates.k8s.io" ]
+    resources: [ "certificatesigningrequests/status" ]
+    verbs: [ "patch" ]
+
+  - apiGroups: [ "certificates.k8s.io" ]
+    resources: [ "signers" ]
+    verbs: [ "sign" ]
+    resourceNames:
+      - czertainlyclusterissuers.sample-issuer.example.com/*
