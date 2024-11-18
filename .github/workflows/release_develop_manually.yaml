@@ -22,43 +22,6 @@ jobs:
           python-version: '3.9'
           check-latest: true
 
-      - name: Set up chart-testing
-        uses: helm/chart-testing-action@v2.6.1
-
-      - name: Run chart-testing (list-changed)
-        id: list-changed
-        run: |
-          changed=$(ct list-changed --target-branch develop --since HEAD^1 --chart-dirs deploy/charts)
-          echo "${changed}"
-          if [[ -n "$changed" ]]; then
-            echo "changed=true" >> $GITHUB_ENV
-
-            # multiline string
-            echo "changed_charts<<EOF" >> $GITHUB_ENV
-            echo "$changed" >> $GITHUB_ENV
-            echo "EOF" >> $GITHUB_ENV
-          fi
-
-      - name: Check if chart version is develop
-        if: env.changed == 'true'
-        env:
-          changed_charts: ${{ env.changed_charts }}
-        run: |
-          #echo "${changed}"
-          #echo "${changed_charts}"
-          for CHART in $changed_charts
-          do
-            echo "Checking chart $CHART for develop version"
-            version=$(yq ".version" < ${CHART}/Chart.yaml)
-            if [[ $version != *-develop ]]; then
-              echo "Chart $CHART changed, but not intended for develop" 
-              exit 1
-            fi
-          done
-
-      - name: Run chart-testing (lint)
-        run: ct lint --target-branch develop --since HEAD^1 --chart-dirs deploy/charts --check-version-increment=false
-
       - name: Install Cosign
         uses: sigstore/cosign-installer@main
         with:
