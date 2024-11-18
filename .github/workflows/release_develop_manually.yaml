@@ -76,6 +76,8 @@ jobs:
               https://$HELM_OCI_REGISTRY/api/v2.0/projects/$HELM_OCI_REPOSITORY/repositories/$name/artifacts/$digest/tags
           }
           
+          changed_charts=$(ls -d deploy/charts*/*)
+          
           for CHART in $changed_charts
           do
             echo "Releasing $CHART"
