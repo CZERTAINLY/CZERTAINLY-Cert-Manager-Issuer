@@ -1,0 +1,16 @@
+{{- if .Values.metrics.protect }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    {{- include "czertainly-issuer.labels" . | nindent 4 }}
+  name: {{ include "czertainly-issuer.name" . }}-proxy-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "czertainly-issuer.name" . }}-proxy-role
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "czertainly-issuer.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}

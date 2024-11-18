@@ -1,0 +1,125 @@
++++ internal/signer/czertainly/model_base_attribute_content_dto.go
+@@ -299,22 +299,8 @@
+ 	}
+ 
+ 	if match > 1 { // more than 1 match
+-		// reset to nil
+-		dst.BooleanAttributeContent = nil
+-		dst.CodeBlockAttributeContent = nil
+-		dst.CredentialAttributeContent = nil
+-		dst.DateAttributeContent = nil
+-		dst.DateTimeAttributeContent = nil
+-		dst.FileAttributeContent = nil
+-		dst.FloatAttributeContent = nil
+-		dst.IntegerAttributeContent = nil
+-		dst.ObjectAttributeContent = nil
+-		dst.SecretAttributeContent = nil
+-		dst.StringAttributeContent = nil
+-		dst.TextAttributeContent = nil
+-		dst.TimeAttributeContent = nil
+-
+-		return fmt.Errorf("data matches more than one schema in oneOf(BaseAttributeContentDto)")
++		// let's continue and pick the correct one later
++		return nil
+ 	} else if match == 1 {
+ 		return nil // exactly one match
+ 	} else { // no match
+
++++ internal/signer/czertainly/model_certificate_detail_dto.go
+@@ -75,7 +75,7 @@
+ 	// Base64 encoded Certificate content
+ 	CertificateContent string `json:"certificateContent"`
+ 	// Subject alternative names
+-	SubjectAlternativeNames map[string]map[string]interface{} `json:"subjectAlternativeNames,omitempty"`
++	SubjectAlternativeNames map[string][]string `json:"subjectAlternativeNames,omitempty"`
+ 	// Locations associated to the Certificate
+ 	Locations []LocationDto `json:"locations,omitempty"`
+ 	// Certificate compliance check result
+@@ -952,9 +952,9 @@
+ }
+ 
+ // GetSubjectAlternativeNames returns the SubjectAlternativeNames field value if set, zero value otherwise.
+-func (o *CertificateDetailDto) GetSubjectAlternativeNames() map[string]map[string]interface{} {
++func (o *CertificateDetailDto) GetSubjectAlternativeNames() map[string][]string {
+ 	if o == nil || IsNil(o.SubjectAlternativeNames) {
+-		var ret map[string]map[string]interface{}
++		var ret map[string][]string
+ 		return ret
+ 	}
+ 	return o.SubjectAlternativeNames
+@@ -962,9 +962,9 @@
+ 
+ // GetSubjectAlternativeNamesOk returns a tuple with the SubjectAlternativeNames field value if set, nil otherwise
+ // and a boolean to check if the value has been set.
+-func (o *CertificateDetailDto) GetSubjectAlternativeNamesOk() (map[string]map[string]interface{}, bool) {
++func (o *CertificateDetailDto) GetSubjectAlternativeNamesOk() (map[string][]string, bool) {
+ 	if o == nil || IsNil(o.SubjectAlternativeNames) {
+-		return map[string]map[string]interface{}{}, false
++		return map[string][]string{}, false
+ 	}
+ 	return o.SubjectAlternativeNames, true
+ }
+@@ -979,7 +979,7 @@
+ }
+ 
+ // SetSubjectAlternativeNames gets a reference to the given map[string]map[string]interface{} and assigns it to the SubjectAlternativeNames field.
+-func (o *CertificateDetailDto) SetSubjectAlternativeNames(v map[string]map[string]interface{}) {
++func (o *CertificateDetailDto) SetSubjectAlternativeNames(v map[string][]string) {
+ 	o.SubjectAlternativeNames = v
+ }
+ 
+@@ -1394,10 +1394,6 @@
+ 		"state",
+ 		"validationStatus",
+ 		"privateKeyAvailability",
+-		"trustedCa",
+-		"keyUsage",
+-		"basicConstraints",
+-		"certificateContent",
+ 	}
+ 
+ 	allProperties := make(map[string]interface{})
+
++++ internal/signer/czertainly/model_certificate_request_dto.go
+@@ -34,7 +34,7 @@
+ 	// Subject DN of the Certificate
+ 	SubjectDn string `json:"subjectDn"`
+ 	// Subject alternative names
+-	SubjectAlternativeNames map[string]map[string]interface{} `json:"subjectAlternativeNames,omitempty"`
++	SubjectAlternativeNames map[string][]string `json:"subjectAlternativeNames,omitempty"`
+ 	// CSR Attributes
+ 	Attributes []ResponseAttributeDto `json:"attributes,omitempty"`
+ 	// Signature Attributes
+@@ -251,9 +251,9 @@
+ }
+ 
+ // GetSubjectAlternativeNames returns the SubjectAlternativeNames field value if set, zero value otherwise.
+-func (o *CertificateRequestDto) GetSubjectAlternativeNames() map[string]map[string]interface{} {
++func (o *CertificateRequestDto) GetSubjectAlternativeNames() map[string][]string {
+ 	if o == nil || IsNil(o.SubjectAlternativeNames) {
+-		var ret map[string]map[string]interface{}
++		var ret map[string][]string
+ 		return ret
+ 	}
+ 	return o.SubjectAlternativeNames
+@@ -261,9 +261,9 @@
+ 
+ // GetSubjectAlternativeNamesOk returns a tuple with the SubjectAlternativeNames field value if set, nil otherwise
+ // and a boolean to check if the value has been set.
+-func (o *CertificateRequestDto) GetSubjectAlternativeNamesOk() (map[string]map[string]interface{}, bool) {
++func (o *CertificateRequestDto) GetSubjectAlternativeNamesOk() (map[string][]string, bool) {
+ 	if o == nil || IsNil(o.SubjectAlternativeNames) {
+-		return map[string]map[string]interface{}{}, false
++		return map[string][]string{}, false
+ 	}
+ 	return o.SubjectAlternativeNames, true
+ }
+@@ -278,7 +278,7 @@
+ }
+ 
+ // SetSubjectAlternativeNames gets a reference to the given map[string]map[string]interface{} and assigns it to the SubjectAlternativeNames field.
+-func (o *CertificateRequestDto) SetSubjectAlternativeNames(v map[string]map[string]interface{}) {
++func (o *CertificateRequestDto) SetSubjectAlternativeNames(v map[string][]string) {
+ 	o.SubjectAlternativeNames = v
+ }
+ 

@@ -1,0 +1,14 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    {{- include "czertainly-issuer.labels" . | nindent 4 }}
+  name: cert-manager-controller-approve:czertainly-issuer-czertainly-com
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cert-manager-controller-approve:czertainly-issuer-czertainly-com
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.certmanager.serviceAccountName }}
+    namespace: {{ .Values.certmanager.namespace }}

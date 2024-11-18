@@ -1,0 +1,12 @@
+generatorName: go
+outputDir: internal/signer/czertainly
+generateApiTests: false
+generateModelTests: false
+generateModelDocumentation: false
+generateApiDocumentation: false
+additionalProperties:
+  packageName: czertainly
+  isGoSubmodule: false
+  disallowAdditionalPropertiesIfNotPresent: false
+  enumClassPrefix: true
+  withGoMod: false

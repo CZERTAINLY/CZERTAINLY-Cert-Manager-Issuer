@@ -1,0 +1,156 @@
+{{- $additionalInitContainers := (include "czertainly-issuer.customization.initContainers" $) }}
+{{- $additionalSidecarContainers := (include "czertainly-issuer.customization.sidecarContainers" $) }}
+{{- $additionalVolumes := (include "czertainly-issuer.customization.volumes" $) }}
+{{- $additionalVolumeMounts := (include "czertainly-issuer.customization.volumeMounts" $) }}
+{{- $additionalEnv := (include "czertainly-issuer.customization.env" $) }}
+{{- $additionalEnvFrom := (include "czertainly-issuer.customization.envFrom" $) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: czertainly-issuer-deployment
+  labels:
+    {{- include "czertainly-issuer.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "czertainly-issuer.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "czertainly-issuer.selectorLabels" . | nindent 8 }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- include "czertainly-issuer.imagePullSecrets" . | indent 6 }}
+      serviceAccountName: {{ include "czertainly-issuer.serviceAccountName" . }}
+      {{- if .Values.podSecurityContext }}
+      securityContext: {{- .Values.podSecurityContext | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if $additionalInitContainers }}
+      initContainers:
+        {{- $additionalInitContainers | nindent 8 }}
+      {{- end }}
+      containers:
+        {{- if .Values.metrics.protect }}
+        - name: kube-rbac-proxy
+          image: {{ include "czertainly-issuer.proxy.image" . }}
+          imagePullPolicy: {{ .Values.proxy.image.pullPolicy }}
+          {{- if .Values.proxy.image.command }}
+          command: {{- include "czertainly-issuer.proxy.image.command" . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.proxy.image.args }}
+          args: {{- include "czertainly-issuer.proxy.image.args" . | nindent 12 }}
+          {{- else }}
+          args:
+            - --secure-listen-address=0.0.0.0:8443
+            - --upstream=http://127.0.0.1:8080/
+            - --logtostderr=true
+            - --v=0
+          {{- end }}
+          {{- with .Values.proxy.image.ports }}
+          ports:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.proxy.image.securityContext }}
+          securityContext: {{- .Values.proxy.image.securityContext | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.proxy.image.resources }}
+          resources: {{- toYaml .Values.proxy.image.resources | nindent 12 }}
+          {{- end }}
+        {{- end }}
+        - name: czertainly-issuer
+          image: {{ include "czertainly-issuer.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.image.command }}
+          command: {{- include "czertainly-issuer.image.command" . | nindent 12 }}
+          {{- else }}
+          command:
+            - /manager
+          {{- end }}
+          {{- if .Values.image.args }}
+          args: {{- include "czertainly-issuer.image.args" . | nindent 12 }}
+          {{- else }}
+          args:
+            - --health-probe-bind-address=:8081
+            - --metrics-bind-address=127.0.0.1:8080
+            - --leader-elect
+          {{- end }}
+          {{- if $additionalEnv }}
+          env:
+            {{- $additionalEnv | nindent 12 }}
+          {{- end }}
+          {{- if $additionalEnvFrom }}
+          envFrom:
+            {{- $additionalEnvFrom | indent 12 }}
+          {{- end }}
+          {{- with .Values.image.ports }}
+          ports:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.image.securityContext }}
+          securityContext: {{- .Values.image.securityContext | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.image.probes.liveness.enabled }}
+          livenessProbe:
+            {{- if .Values.image.probes.liveness.custom }}
+            {{- toYaml .Values.image.probes.liveness.custom | nindent 12 }}
+            {{- else }}
+            httpGet:
+              path: /healthz
+              port: 8081
+            {{- end }}
+            initialDelaySeconds: {{ .Values.image.probes.liveness.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.image.probes.liveness.timeoutSeconds }}
+            periodSeconds: {{ .Values.image.probes.liveness.periodSeconds }}
+            successThreshold: {{ .Values.image.probes.liveness.successThreshold }}
+            failureThreshold: {{ .Values.image.probes.liveness.failureThreshold }}
+          {{- end }}
+          {{- if .Values.image.probes.readiness.enabled }}
+          readinessProbe:
+            {{- if .Values.image.probes.readiness.custom }}
+            {{- toYaml .Values.image.probes.readiness.custom | nindent 12 }}
+            {{- else }}
+            httpGet:
+              path: /readyz
+              port: 8081
+            {{- end }}
+            initialDelaySeconds: {{ .Values.image.probes.readiness.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.image.probes.readiness.timeoutSeconds }}
+            periodSeconds: {{ .Values.image.probes.readiness.periodSeconds }}
+            successThreshold: {{ .Values.image.probes.readiness.successThreshold }}
+            failureThreshold: {{ .Values.image.probes.readiness.failureThreshold }}
+          {{- end }}
+          {{- if .Values.image.probes.startup.enabled }}
+          startupProbe:
+            {{- if .Values.image.probes.startup.custom }}
+            {{- toYaml .Values.image.probes.startup.custom | nindent 12 }}
+            {{- else }}
+            httpGet:
+              path: /healthz
+              port: 8081
+            {{- end }}
+            initialDelaySeconds: {{ .Values.image.probes.startup.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.image.probes.startup.timeoutSeconds }}
+            periodSeconds: {{ .Values.image.probes.startup.periodSeconds }}
+            successThreshold: {{ .Values.image.probes.startup.successThreshold }}
+            failureThreshold: {{ .Values.image.probes.startup.failureThreshold }}
+          {{- end }}
+          {{- if .Values.image.resources }}
+          resources: {{- toYaml .Values.image.resources | nindent 12 }}
+          {{- end }}
+          {{- if $additionalVolumeMounts }}
+          volumeMounts:
+            {{- $additionalVolumeMounts | nindent 12 }}
+          {{- end }}
+        {{- if $additionalSidecarContainers }}
+          {{- $additionalSidecarContainers | nindent 8 }}
+        {{- end }}
+      {{- if $additionalVolumes }}
+      volumes:
+        {{- $additionalVolumes | nindent 8 }}
+      {{- end }}
