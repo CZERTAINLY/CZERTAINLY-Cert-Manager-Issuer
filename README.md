@@ -6,8 +6,7 @@ CZERTAINLY Issuer is a implementation of the [cert-manager](https://cert-manager
 
 ## Getting started
 
-Refer to [Cert-Manager Issuer] integration guide for more information.
-
+Refer to [CZERTAINLY Cert-Manager Issuer](https://docs.czertainly.com/docs/certificate-key/integration-guides/cert-manager-issuer/overview) integration guide for more information.
 
 ## Generated CZERTAINLY OpenAPI client
 
