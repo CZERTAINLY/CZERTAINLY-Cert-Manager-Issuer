@@ -122,3 +122,22 @@
  	o.SubjectAlternativeNames = v
  }
  
+Fixing the issue https://github.com/CZERTAINLY/CZERTAINLY-Core/issues/883
++++ internal/signer/czertainly/model_certificate_request_dto.go
+@@ -30,7 +30,7 @@
+ 	// Certificate request content
+ 	Content string `json:"content"`
+ 	// Certificate common name
+-	CommonName string `json:"commonName"`
++	CommonName string `json:"commonName,omitempty"`
+ 	// Subject DN of the Certificate
+ 	SubjectDn string `json:"subjectDn"`
+ 	// Subject alternative names
+@@ -396,7 +396,6 @@
+ 		"publicKeyAlgorithm",
+ 		"signatureAlgorithm",
+ 		"content",
+-		"commonName",
+ 		"subjectDn",
+ 	}
+

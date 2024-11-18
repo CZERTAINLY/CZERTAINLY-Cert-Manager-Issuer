@@ -30,7 +30,7 @@ type CertificateRequestDto struct {
 	// Certificate request content
 	Content string `json:"content"`
 	// Certificate common name
-	CommonName string `json:"commonName"`
+	CommonName string `json:"commonName,omitempty"`
 	// Subject DN of the Certificate
 	SubjectDn string `json:"subjectDn"`
 	// Subject alternative names
@@ -396,7 +396,6 @@ func (o *CertificateRequestDto) UnmarshalJSON(data []byte) (err error) {
 		"publicKeyAlgorithm",
 		"signatureAlgorithm",
 		"content",
-		"commonName",
 		"subjectDn",
 	}
 
