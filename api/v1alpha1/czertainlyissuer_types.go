@@ -30,7 +30,7 @@ type IssuerSpec struct {
 	// for example: "https://my.czertainly.com/api".
 	ApiUrl string `json:"apiUrl"`
 
-	// AuthSecretName is a reference to a kubernetes.io/tls Secret that is
+	// AuthSecretName is a reference to a kubernetes.io/tls or Opaque Secret that is
 	// used to authenticate and authorize to CZERTAINLY platform.
 	// The Secret must be in the same namespace
 	// as the referent. If the referent is a ClusterIssuer, the reference instead

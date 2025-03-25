@@ -34,13 +34,13 @@ type HealthChecker interface {
 	Check() error
 }
 
-type HealthCheckerBuilder func(context.Context, *czertainlyissuerapi.IssuerSpec, map[string][]byte, map[string][]byte) (HealthChecker, error)
+type HealthCheckerBuilder func(context.Context, *czertainlyissuerapi.IssuerSpec, corev1.Secret, map[string][]byte) (HealthChecker, error)
 
 type Signer interface {
 	Sign(context.Context, signer.CertificateRequestObject) ([]byte, error)
 }
 
-type SignerBuilder func(context.Context, *czertainlyissuerapi.IssuerSpec, map[string][]byte, map[string][]byte, map[string]string) (Signer, error)
+type SignerBuilder func(context.Context, *czertainlyissuerapi.IssuerSpec, corev1.Secret, map[string][]byte, map[string]string) (Signer, error)
 
 type Issuer struct {
 	HealthCheckerBuilder     HealthCheckerBuilder
@@ -81,7 +81,7 @@ func (o *Issuer) getIssuerDetails(issuerObject issuerapi.Issuer) (*czertainlyiss
 	}
 }
 
-func (o *Issuer) getAuthSecretData(ctx context.Context, issuerSpec *czertainlyissuerapi.IssuerSpec, namespace string) (map[string][]byte, error) {
+func (o *Issuer) getAuthSecret(ctx context.Context, issuerSpec *czertainlyissuerapi.IssuerSpec, namespace string) (corev1.Secret, error) {
 	authSecretName := types.NamespacedName{
 		Namespace: namespace,
 		Name:      issuerSpec.AuthSecretName,
@@ -89,10 +89,10 @@ func (o *Issuer) getAuthSecretData(ctx context.Context, issuerSpec *czertainlyis
 
 	var authSecret corev1.Secret
 	if err := o.client.Get(ctx, authSecretName, &authSecret); err != nil {
-		return nil, fmt.Errorf("%w, authSecret name: %s, reason: %v", errGetAuthSecret, authSecretName, err)
+		return corev1.Secret{}, fmt.Errorf("%w, authSecret name: %s, reason: %v", errGetAuthSecret, authSecretName, err)
 	}
 
-	return authSecret.Data, nil
+	return authSecret, nil
 }
 
 func (o *Issuer) getCaBundleSecretData(ctx context.Context, issuerSpec *czertainlyissuerapi.IssuerSpec, namespace string) (map[string][]byte, error) {
@@ -122,7 +122,7 @@ func (o *Issuer) Check(ctx context.Context, issuerObject issuerapi.Issuer) error
 		return err
 	}
 
-	authSecretData, err := o.getAuthSecretData(ctx, issuerSpec, namespace)
+	authSecret, err := o.getAuthSecret(ctx, issuerSpec, namespace)
 	if err != nil {
 		return err
 	}
@@ -132,7 +132,7 @@ func (o *Issuer) Check(ctx context.Context, issuerObject issuerapi.Issuer) error
 		return err
 	}
 
-	checker, err := o.HealthCheckerBuilder(ctx, issuerSpec, authSecretData, caBundleSecretData)
+	checker, err := o.HealthCheckerBuilder(ctx, issuerSpec, authSecret, caBundleSecretData)
 	if err != nil {
 		return fmt.Errorf("%w: %v", errHealthCheckerBuilder, err)
 	}
@@ -159,7 +159,7 @@ func (o *Issuer) Sign(ctx context.Context, cr signer.CertificateRequestObject, i
 		}
 	}
 
-	authSecretData, err := o.getAuthSecretData(ctx, issuerSpec, namespace)
+	authSecret, err := o.getAuthSecret(ctx, issuerSpec, namespace)
 	if err != nil {
 		// Returning an IssuerError will change the status of the Issuer to Failed too.
 		return signer.PEMBundle{}, signer.IssuerError{
@@ -180,7 +180,7 @@ func (o *Issuer) Sign(ctx context.Context, cr signer.CertificateRequestObject, i
 		return signer.PEMBundle{}, err
 	}
 
-	signerObj, err := o.SignerBuilder(ctx, issuerSpec, authSecretData, caBundleSecretData, cr.GetAnnotations())
+	signerObj, err := o.SignerBuilder(ctx, issuerSpec, authSecret, caBundleSecretData, cr.GetAnnotations())
 	if err != nil {
 		return signer.PEMBundle{}, fmt.Errorf("%w: %v", errSignerBuilder, err)
 	}
