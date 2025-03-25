@@ -12,8 +12,12 @@ import (
 	"github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer/internal/controllers"
 	"github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer/internal/signer/czertainly"
 	"github.com/cert-manager/issuer-lib/controllers/signer"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/clientcredentials"
+	corev1 "k8s.io/api/core/v1"
 	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"strings"
 	"time"
 )
 
@@ -24,7 +28,7 @@ type czertainlySigner struct {
 	raProfileName string
 }
 
-func CzertainlyHealthCheckerFromIssuerAndSecretData(ctx context.Context, issuerSpec *czertainlyissuerapi.IssuerSpec, authSecretData map[string][]byte, caBundleSecretData map[string][]byte) (controllers.HealthChecker, error) {
+func CzertainlyHealthCheckerFromIssuerAndSecretData(ctx context.Context, issuerSpec *czertainlyissuerapi.IssuerSpec, authSecret corev1.Secret, caBundleSecretData map[string][]byte) (controllers.HealthChecker, error) {
 	// l := log.FromContext(ctx)
 	czertainlySigner := czertainlySigner{}
 
@@ -34,7 +38,7 @@ func CzertainlyHealthCheckerFromIssuerAndSecretData(ctx context.Context, issuerS
 		{URL: issuerSpec.ApiUrl},
 	}
 
-	client, err := createHttpClient(ctx, issuerSpec, authSecretData, caBundleSecretData)
+	client, err := createHttpClient(ctx, issuerSpec, authSecret, caBundleSecretData)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +50,7 @@ func CzertainlyHealthCheckerFromIssuerAndSecretData(ctx context.Context, issuerS
 	return &czertainlySigner, nil
 }
 
-func createHttpClient(ctx context.Context, issuerSpec *czertainlyissuerapi.IssuerSpec, authSecretData map[string][]byte, caBundleSecretData map[string][]byte) (*http.Client, error) {
+func createHttpClient(ctx context.Context, issuerSpec *czertainlyissuerapi.IssuerSpec, authSecret corev1.Secret, caBundleSecretData map[string][]byte) (*http.Client, error) {
 	tlsConfig := &tls.Config{}
 
 	if len(caBundleSecretData) > 0 {
@@ -55,24 +59,58 @@ func createHttpClient(ctx context.Context, issuerSpec *czertainlyissuerapi.Issue
 		tlsConfig.RootCAs = caCertPool
 	}
 
-	cert, err := tls.X509KeyPair(authSecretData["tls.crt"], authSecretData["tls.key"])
-	if err != nil {
-		return nil, err
+	switch authSecret.Type {
+	case corev1.SecretTypeTLS:
+		// mTLS client
+		cert, err := tls.X509KeyPair(authSecret.Data["tls.crt"], authSecret.Data["tls.key"])
+		if err != nil {
+			return nil, err
+		}
+		tlsConfig.Certificates = []tls.Certificate{cert}
+
+		// Use the standard transport but inject our TLS configuration
+		client := &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: tlsConfig,
+			},
+			Timeout: time.Second * 10,
+		}
+		return client, nil
+
+	case corev1.SecretTypeOpaque:
+		// OAuth2 client credentials
+		clientID := string(authSecret.Data["client_id"])
+		clientSecret := string(authSecret.Data["client_secret"])
+		tokenURL := string(authSecret.Data["token_url"])
+		scopes := strings.Split(string(authSecret.Data["scopes"]), " ")
+
+		clientCredentialsConfig := &clientcredentials.Config{
+			ClientID:     clientID,
+			ClientSecret: clientSecret,
+			TokenURL:     tokenURL,
+			Scopes:       scopes,
+		}
+
+		tokenSource := clientCredentialsConfig.TokenSource(ctx)
+
+		client := &http.Client{
+			Transport: &oauth2.Transport{
+				Base: &http.Transport{
+					TLSClientConfig: tlsConfig,
+				},
+				Source: tokenSource,
+			},
+			Timeout: time.Second * 10,
+		}
+		return client, nil
+
+	default:
+		// Unsupported secret type
+		return nil, errors.New("unknown authSecret type")
 	}
-
-	tlsConfig.Certificates = []tls.Certificate{cert}
-
-	client := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: tlsConfig,
-		},
-		Timeout: time.Second * 10,
-	}
-
-	return client, nil
 }
 
-func CzertainlySignerFromIssuerAndSecretData(ctx context.Context, issuerSpec *czertainlyissuerapi.IssuerSpec, authSecretData map[string][]byte, caBundleSecretData map[string][]byte, annotations map[string]string) (controllers.Signer, error) {
+func CzertainlySignerFromIssuerAndSecretData(ctx context.Context, issuerSpec *czertainlyissuerapi.IssuerSpec, authSecret corev1.Secret, caBundleSecretData map[string][]byte, annotations map[string]string) (controllers.Signer, error) {
 	// l := log.FromContext(ctx)
 	czertainlySigner := czertainlySigner{}
 
@@ -82,7 +120,7 @@ func CzertainlySignerFromIssuerAndSecretData(ctx context.Context, issuerSpec *cz
 		{URL: issuerSpec.ApiUrl},
 	}
 
-	client, err := createHttpClient(ctx, issuerSpec, authSecretData, caBundleSecretData)
+	client, err := createHttpClient(ctx, issuerSpec, authSecret, caBundleSecretData)
 	if err != nil {
 		return nil, err
 	}
