@@ -1,13 +1,16 @@
-name: Release master Charts
+name: Publish Chart
 on:
   push:
+    paths:
+      - 'deploy/charts/**'
+    branches: [ main ]
     tags:
-      - '*'  # we want to trigger this workflow on any tag
+      - '*'
   workflow_dispatch:
 
 jobs:
-  check:
-    name: Check
+  publish:
+    name: Publish charts
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -31,23 +34,27 @@ jobs:
       - name: Run chart-testing (list-changed)
         id: list-changed
         run: |
-          # get the previous tag
-          last_tag=$(git for-each-ref --sort=-creatordate --count 2 --format="%(refname:short)" "refs/tags/*" | sed -n '2 p')
-          echo "Last tag: $last_tag"
-          echo "last_tag=$last_tag" >> $GITHUB_ENV
+          # changed variable depends on push or tag
+          if [[ -n "${{ github.event_name }}" && "${{ github.event_name }}" == 'push' ]]; then
+              changed=$(ct list-changed --target-branch main --since HEAD^1 --chart-dirs deploy/charts)
+          elif [[ -n "${{ github.event_name }}" && "${{ github.event_name }}" == 'tag' ]]; then
+              last_tag=$(git for-each-ref --sort=-creatordate --count 2 --format="%(refname:short)" "refs/tags/*" | sed -n '2 p')
+              echo "Last tag: $last_tag"
+              echo "last_tag=$last_tag" >> $GITHUB_ENV
+              changed=$(ct list-changed --target-branch main --since $last_tag --chart-dirs deploy/charts)
+          fi
           
-          changed=$(ct list-changed --target-branch master --since $last_tag --chart-dirs deploy/charts)
           echo "${changed}"
           if [[ -n "$changed" ]]; then
             echo "changed=true" >> $GITHUB_ENV
-          
+
             # multiline string
             echo "changed_charts<<EOF" >> $GITHUB_ENV
             echo "$changed" >> $GITHUB_ENV
             echo "EOF" >> $GITHUB_ENV
           fi
 
-      - name: Check that chart version does not contain develop
+      - name: Check version of chart
         if: env.changed == 'true'
         env:
           changed_charts: ${{ env.changed_charts }}
@@ -58,23 +65,36 @@ jobs:
           do
             echo "Checking chart $CHART for develop version"
             version=$(yq ".version" < ${CHART}/Chart.yaml)
-            if [[ $version == *-develop ]]; then
-              echo "Chart $CHART contains develop, but not intended for develop" 
-              exit 1
+            
+            if [[ -n "${{ github.event_name }}" && "${{ github.event_name }}" == 'push' ]]; then
+              if [[ $version != *-develop ]]; then
+                echo "Chart $CHART changed, but not intended for develop" 
+                exit 1
+              fi
+            elif [[ -n "${{ github.event_name }}" && "${{ github.event_name }}" == 'tag' ]]; then
+              if [[ $version == *-develop ]]; then
+                echo "Chart $CHART contains develop, but not intended for develop" 
+                exit 1
+              fi
             fi
           done
 
-      - name: Run chart-testing (lint)
+      - name: Run chart-testing (lint) for push
+        if: github.event_name == 'push
+        run: ct lint --target-branch main --since HEAD^1 --chart-dirs deploy/charts --check-version-increment=false
+
+      - name: Run chart-testing (lint) for tag
+        if: github.event_name == 'tag'
         env:
           last_tag: ${{ env.last_tag }}
-        run: ct lint --target-branch master --since $last_tag --chart-dirs deploy/charts --check-version-increment=false
+        run: ct lint --target-branch main --since $last_tag --chart-dirs deploy/charts --check-version-increment=false
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@main
         with:
           cosign-release: 'v2.0.0'
 
-      - name: Push release charts
+      - name: Push charts
         if: env.changed == 'true'
         env:
           changed_charts: ${{ env.changed_charts }}
@@ -107,6 +127,24 @@ jobs:
             cosign sign --yes --key env://COSIGN_PRIVATE_KEY $HELM_OCI_REGISTRY/$HELM_OCI_REPOSITORY/$name@$digest
           
             echo "Chart $name-$version pushed"
+          
+            # update tag 0.0.0 that represents the latest develop version
+            if [[ -n "${{ github.event_name }}" && "${{ github.event_name }}" == 'push' ]]; then
+              # SPECIFIC TO HARBOR
+              echo "Check if develop tag 0.0.0 exists and remove it"
+              pulled=$(helm pull oci://$HELM_OCI_REGISTRY/$HELM_OCI_REPOSITORY/$name --version 0.0.0 2>&1)
+              if [[ $pulled == *"Digest:"* ]]; then
+                removeFrom=$(echo "$pulled" | awk 'FNR == 2 {print $2}')
+                echo "Tag 0.0.0 exists, remove it from $removeFrom"
+                curl --user $HELM_USERNAME:$HELM_PASSWORD --request DELETE --silent --show-error \
+                  https://$HELM_OCI_REGISTRY/api/v2.0/projects/$HELM_OCI_REPOSITORY/repositories/$name/artifacts/$removeFrom/tags/0.0.0
+              fi
+            
+              echo "Create new develop tag 0.0.0"
+              curl --user $HELM_USERNAME:$HELM_PASSWORD --request POST --header "Content-Type: application/json" \
+                --silent --show-error --data '{"name":"0.0.0"}' \
+                https://$HELM_OCI_REGISTRY/api/v2.0/projects/$HELM_OCI_REPOSITORY/repositories/$name/artifacts/$digest/tags
+            fi
           }
           
           for CHART in $changed_charts
@@ -114,6 +152,6 @@ jobs:
             echo "Releasing $CHART"
             release_chart $CHART
           done
-          
+                    
           echo "Logging out from $HELM_OCI_REGISTRY"
           helm registry logout $HELM_OCI_REGISTRY

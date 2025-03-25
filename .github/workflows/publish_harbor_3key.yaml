@@ -2,7 +2,9 @@ name: Publish 3Key Harbor image
 
 on:
   push:
-    branches: [develop]
+    paths-ignore:
+      - 'deploy/charts/**'
+    branches: [main]
     tags:
       - '*'
   workflow_dispatch:
