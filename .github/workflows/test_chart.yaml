@@ -1,12 +1,13 @@
-name: Test chart
+name: Test Chart
 on:
   pull_request:
-    branches: [ develop ]
+    paths:
+      - 'deploy/charts/**'
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   check:
-    if: ${{ (!contains(github.event.pull_request.labels.*.name, 'skip-workflow')) }}
     name: Check
     runs-on: ubuntu-latest
 
@@ -32,7 +33,7 @@ jobs:
       - name: Run chart-testing (list-changed)
         id: list-changed
         run: |
-          changed=$(ct list-changed --target-branch develop --chart-dirs deploy/charts)
+          changed=$(ct list-changed --target-branch main --chart-dirs deploy/charts)
           echo "${changed}"
           if [[ -n "$changed" ]]; then
             echo "changed=true" >> $GITHUB_ENV
@@ -62,7 +63,7 @@ jobs:
 
       - name: Run chart-testing (lint)
         if: env.changed == 'true'
-        run: ct lint --target-branch develop --chart-dirs deploy/charts --check-version-increment=false
+        run: ct lint --target-branch main --chart-dirs deploy/charts --check-version-increment=false
 
       - name: Create kind cluster
         uses: helm/kind-action@v1.9.0
@@ -75,4 +76,4 @@ jobs:
       - name: Run chart-testing (install)
         run: |
           kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.11.1/cert-manager.crds.yaml
-          ct install --namespace chart-testing --target-branch develop --chart-dirs deploy/charts
+          ct install --namespace chart-testing --target-branch main --chart-dirs deploy/charts
