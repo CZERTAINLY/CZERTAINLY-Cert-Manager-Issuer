@@ -80,7 +80,7 @@ jobs:
           done
 
       - name: Run chart-testing (lint) for push
-        if: github.event_name == 'push
+        if: github.event_name == 'push'
         run: ct lint --target-branch main --since HEAD^1 --chart-dirs deploy/charts --check-version-increment=false
 
       - name: Run chart-testing (lint) for tag
