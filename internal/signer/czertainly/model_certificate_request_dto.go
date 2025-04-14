@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -19,10 +19,12 @@ import (
 // checks if the CertificateRequestDto type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &CertificateRequestDto{}
 
-// CertificateRequestDto Certificate request data
+// CertificateRequestDto struct for CertificateRequestDto
 type CertificateRequestDto struct {
-	CertificateType *CertificateType `json:"certificateType,omitempty"`
-	CertificateRequestFormat *CertificateRequestFormat `json:"certificateRequestFormat,omitempty"`
+	// Certificate type
+	CertificateType CertificateType `json:"certificateType"`
+	// Certificate request format
+	CertificateRequestFormat CertificateRequestFormat `json:"certificateRequestFormat"`
 	// Public key algorithm
 	PublicKeyAlgorithm string `json:"publicKeyAlgorithm"`
 	// Certificate signature algorithm
@@ -30,7 +32,7 @@ type CertificateRequestDto struct {
 	// Certificate request content
 	Content string `json:"content"`
 	// Certificate common name
-	CommonName string `json:"commonName,omitempty"`
+	CommonName string `json:"commonName"`
 	// Subject DN of the Certificate
 	SubjectDn string `json:"subjectDn"`
 	// Subject alternative names
@@ -39,6 +41,8 @@ type CertificateRequestDto struct {
 	Attributes []ResponseAttributeDto `json:"attributes,omitempty"`
 	// Signature Attributes
 	SignatureAttributes []ResponseAttributeDto `json:"signatureAttributes,omitempty"`
+	// UUID of the Key
+	KeyUuid *string `json:"keyUuid,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -48,10 +52,10 @@ type _CertificateRequestDto CertificateRequestDto
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCertificateRequestDto(publicKeyAlgorithm string, signatureAlgorithm string, content string, commonName string, subjectDn string) *CertificateRequestDto {
+func NewCertificateRequestDto(certificateType CertificateType, certificateRequestFormat CertificateRequestFormat, publicKeyAlgorithm string, signatureAlgorithm string, content string, commonName string, subjectDn string) *CertificateRequestDto {
 	this := CertificateRequestDto{}
-	var certificateRequestFormat CertificateRequestFormat = CERTIFICATEREQUESTFORMAT_PKCS10
-	this.CertificateRequestFormat = &certificateRequestFormat
+	this.CertificateType = certificateType
+	this.CertificateRequestFormat = certificateRequestFormat
 	this.PublicKeyAlgorithm = publicKeyAlgorithm
 	this.SignatureAlgorithm = signatureAlgorithm
 	this.Content = content
@@ -65,73 +69,55 @@ func NewCertificateRequestDto(publicKeyAlgorithm string, signatureAlgorithm stri
 // but it doesn't guarantee that properties required by API are set
 func NewCertificateRequestDtoWithDefaults() *CertificateRequestDto {
 	this := CertificateRequestDto{}
-	var certificateRequestFormat CertificateRequestFormat = CERTIFICATEREQUESTFORMAT_PKCS10
-	this.CertificateRequestFormat = &certificateRequestFormat
 	return &this
 }
 
-// GetCertificateType returns the CertificateType field value if set, zero value otherwise.
+// GetCertificateType returns the CertificateType field value
 func (o *CertificateRequestDto) GetCertificateType() CertificateType {
-	if o == nil || IsNil(o.CertificateType) {
+	if o == nil {
 		var ret CertificateType
 		return ret
 	}
-	return *o.CertificateType
+
+	return o.CertificateType
 }
 
-// GetCertificateTypeOk returns a tuple with the CertificateType field value if set, nil otherwise
+// GetCertificateTypeOk returns a tuple with the CertificateType field value
 // and a boolean to check if the value has been set.
 func (o *CertificateRequestDto) GetCertificateTypeOk() (*CertificateType, bool) {
-	if o == nil || IsNil(o.CertificateType) {
+	if o == nil {
 		return nil, false
 	}
-	return o.CertificateType, true
+	return &o.CertificateType, true
 }
 
-// HasCertificateType returns a boolean if a field has been set.
-func (o *CertificateRequestDto) HasCertificateType() bool {
-	if o != nil && !IsNil(o.CertificateType) {
-		return true
-	}
-
-	return false
-}
-
-// SetCertificateType gets a reference to the given CertificateType and assigns it to the CertificateType field.
+// SetCertificateType sets field value
 func (o *CertificateRequestDto) SetCertificateType(v CertificateType) {
-	o.CertificateType = &v
+	o.CertificateType = v
 }
 
-// GetCertificateRequestFormat returns the CertificateRequestFormat field value if set, zero value otherwise.
+// GetCertificateRequestFormat returns the CertificateRequestFormat field value
 func (o *CertificateRequestDto) GetCertificateRequestFormat() CertificateRequestFormat {
-	if o == nil || IsNil(o.CertificateRequestFormat) {
+	if o == nil {
 		var ret CertificateRequestFormat
 		return ret
 	}
-	return *o.CertificateRequestFormat
+
+	return o.CertificateRequestFormat
 }
 
-// GetCertificateRequestFormatOk returns a tuple with the CertificateRequestFormat field value if set, nil otherwise
+// GetCertificateRequestFormatOk returns a tuple with the CertificateRequestFormat field value
 // and a boolean to check if the value has been set.
 func (o *CertificateRequestDto) GetCertificateRequestFormatOk() (*CertificateRequestFormat, bool) {
-	if o == nil || IsNil(o.CertificateRequestFormat) {
+	if o == nil {
 		return nil, false
 	}
-	return o.CertificateRequestFormat, true
+	return &o.CertificateRequestFormat, true
 }
 
-// HasCertificateRequestFormat returns a boolean if a field has been set.
-func (o *CertificateRequestDto) HasCertificateRequestFormat() bool {
-	if o != nil && !IsNil(o.CertificateRequestFormat) {
-		return true
-	}
-
-	return false
-}
-
-// SetCertificateRequestFormat gets a reference to the given CertificateRequestFormat and assigns it to the CertificateRequestFormat field.
+// SetCertificateRequestFormat sets field value
 func (o *CertificateRequestDto) SetCertificateRequestFormat(v CertificateRequestFormat) {
-	o.CertificateRequestFormat = &v
+	o.CertificateRequestFormat = v
 }
 
 // GetPublicKeyAlgorithm returns the PublicKeyAlgorithm field value
@@ -281,7 +267,7 @@ func (o *CertificateRequestDto) HasSubjectAlternativeNames() bool {
 	return false
 }
 
-// SetSubjectAlternativeNames gets a reference to the given map[string]map[string]interface{} and assigns it to the SubjectAlternativeNames field.
+// SetSubjectAlternativeNames gets a reference to the given map[string][]string and assigns it to the SubjectAlternativeNames field.
 func (o *CertificateRequestDto) SetSubjectAlternativeNames(v map[string][]string) {
 	o.SubjectAlternativeNames = v
 }
@@ -350,6 +336,38 @@ func (o *CertificateRequestDto) SetSignatureAttributes(v []ResponseAttributeDto)
 	o.SignatureAttributes = v
 }
 
+// GetKeyUuid returns the KeyUuid field value if set, zero value otherwise.
+func (o *CertificateRequestDto) GetKeyUuid() string {
+	if o == nil || IsNil(o.KeyUuid) {
+		var ret string
+		return ret
+	}
+	return *o.KeyUuid
+}
+
+// GetKeyUuidOk returns a tuple with the KeyUuid field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CertificateRequestDto) GetKeyUuidOk() (*string, bool) {
+	if o == nil || IsNil(o.KeyUuid) {
+		return nil, false
+	}
+	return o.KeyUuid, true
+}
+
+// HasKeyUuid returns a boolean if a field has been set.
+func (o *CertificateRequestDto) HasKeyUuid() bool {
+	if o != nil && !IsNil(o.KeyUuid) {
+		return true
+	}
+
+	return false
+}
+
+// SetKeyUuid gets a reference to the given string and assigns it to the KeyUuid field.
+func (o *CertificateRequestDto) SetKeyUuid(v string) {
+	o.KeyUuid = &v
+}
+
 func (o CertificateRequestDto) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -360,12 +378,8 @@ func (o CertificateRequestDto) MarshalJSON() ([]byte, error) {
 
 func (o CertificateRequestDto) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
-	if !IsNil(o.CertificateType) {
-		toSerialize["certificateType"] = o.CertificateType
-	}
-	if !IsNil(o.CertificateRequestFormat) {
-		toSerialize["certificateRequestFormat"] = o.CertificateRequestFormat
-	}
+	toSerialize["certificateType"] = o.CertificateType
+	toSerialize["certificateRequestFormat"] = o.CertificateRequestFormat
 	toSerialize["publicKeyAlgorithm"] = o.PublicKeyAlgorithm
 	toSerialize["signatureAlgorithm"] = o.SignatureAlgorithm
 	toSerialize["content"] = o.Content
@@ -380,6 +394,9 @@ func (o CertificateRequestDto) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.SignatureAttributes) {
 		toSerialize["signatureAttributes"] = o.SignatureAttributes
 	}
+	if !IsNil(o.KeyUuid) {
+		toSerialize["keyUuid"] = o.KeyUuid
+	}
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -393,9 +410,12 @@ func (o *CertificateRequestDto) UnmarshalJSON(data []byte) (err error) {
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
 	requiredProperties := []string{
+		"certificateType",
+		"certificateRequestFormat",
 		"publicKeyAlgorithm",
 		"signatureAlgorithm",
 		"content",
+		"commonName",
 		"subjectDn",
 	}
 
@@ -436,6 +456,7 @@ func (o *CertificateRequestDto) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "subjectAlternativeNames")
 		delete(additionalProperties, "attributes")
 		delete(additionalProperties, "signatureAttributes")
+		delete(additionalProperties, "keyUuid")
 		o.AdditionalProperties = additionalProperties
 	}
 

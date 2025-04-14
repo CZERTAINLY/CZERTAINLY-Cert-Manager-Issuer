@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -25,6 +25,7 @@ type MetadataResponseDto struct {
 	ConnectorUuid *string `json:"connectorUuid,omitempty"`
 	// Name of the Connector
 	ConnectorName *string `json:"connectorName,omitempty"`
+	// Source Object Type
 	SourceObjectType *Resource `json:"sourceObjectType,omitempty"`
 	// List of Metadata
 	Items []ResponseMetadataDto `json:"items"`

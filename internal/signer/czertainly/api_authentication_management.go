@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -28,7 +28,7 @@ type ApiProfileRequest struct {
 	ApiService *AuthenticationManagementAPIService
 }
 
-func (r ApiProfileRequest) Execute() (*UserDetailDto, *http.Response, error) {
+func (r ApiProfileRequest) Execute() (*UserProfileDetailDto, *http.Response, error) {
 	return r.ApiService.ProfileExecute(r)
 }
 
@@ -46,13 +46,13 @@ func (a *AuthenticationManagementAPIService) Profile(ctx context.Context) ApiPro
 }
 
 // Execute executes the request
-//  @return UserDetailDto
-func (a *AuthenticationManagementAPIService) ProfileExecute(r ApiProfileRequest) (*UserDetailDto, *http.Response, error) {
+//  @return UserProfileDetailDto
+func (a *AuthenticationManagementAPIService) ProfileExecute(r ApiProfileRequest) (*UserProfileDetailDto, *http.Response, error) {
 	var (
 		localVarHTTPMethod   = http.MethodGet
 		localVarPostBody     interface{}
 		formFiles            []formFile
-		localVarReturnValue  *UserDetailDto
+		localVarReturnValue  *UserProfileDetailDto
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "AuthenticationManagementAPIService.Profile")
@@ -83,6 +83,20 @@ func (a *AuthenticationManagementAPIService) ProfileExecute(r ApiProfileRequest)
 	if localVarHTTPHeaderAccept != "" {
 		localVarHeaderParams["Accept"] = localVarHTTPHeaderAccept
 	}
+	if r.ctx != nil {
+		// API Key Authentication
+		if auth, ok := r.ctx.Value(ContextAPIKeys).(map[string]APIKey); ok {
+			if apiKey, ok := auth["CertificateAuth"]; ok {
+				var key string
+				if apiKey.Prefix != "" {
+					key = apiKey.Prefix + " " + apiKey.Key
+				} else {
+					key = apiKey.Key
+				}
+				localVarHeaderParams["X-APP-CERTIFICATE"] = key
+			}
+		}
+	}
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err
@@ -106,17 +120,6 @@ func (a *AuthenticationManagementAPIService) ProfileExecute(r ApiProfileRequest)
 			error: localVarHTTPResponse.Status,
 		}
 		if localVarHTTPResponse.StatusCode == 400 {
-			var v ErrorMessageDto
-			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
-			if err != nil {
-				newErr.error = err.Error()
-				return localVarReturnValue, localVarHTTPResponse, newErr
-			}
-					newErr.error = formatErrorMessage(localVarHTTPResponse.Status, &v)
-					newErr.model = v
-			return localVarReturnValue, localVarHTTPResponse, newErr
-		}
-		if localVarHTTPResponse.StatusCode == 404 {
 			var v ErrorMessageDto
 			err = a.client.decode(&v, localVarBody, localVarHTTPResponse.Header.Get("Content-Type"))
 			if err != nil {

@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -19,8 +19,9 @@ import (
 // checks if the CodeBlockAttributeContentData type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &CodeBlockAttributeContentData{}
 
-// CodeBlockAttributeContentData CodeBlock attribute content data
+// CodeBlockAttributeContentData struct for CodeBlockAttributeContentData
 type CodeBlockAttributeContentData struct {
+	// Definition of programming languages used for code
 	Language ProgrammingLanguageEnum `json:"language"`
 	// Block of the code in Base64. Formatting of the code is specified by variable language
 	Code string `json:"code"`

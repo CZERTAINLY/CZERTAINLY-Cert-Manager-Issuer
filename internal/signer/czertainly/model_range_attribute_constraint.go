@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -19,13 +19,15 @@ import (
 // checks if the RangeAttributeConstraint type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &RangeAttributeConstraint{}
 
-// RangeAttributeConstraint struct for RangeAttributeConstraint
+// RangeAttributeConstraint Range attribute constraint to specify boundaries for integer value
 type RangeAttributeConstraint struct {
 	// Description of the constraint
 	Description *string `json:"description,omitempty"`
 	// Error message to be displayed for wrong data
 	ErrorMessage *string `json:"errorMessage,omitempty"`
+	// Attribute Constraint Type
 	Type AttributeConstraintType `json:"type"`
+	// Integer Range Attribute Constraint Data
 	Data *RangeAttributeConstraintData `json:"data,omitempty"`
 	AdditionalProperties map[string]interface{}
 }

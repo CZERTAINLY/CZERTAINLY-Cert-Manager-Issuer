@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -19,7 +19,7 @@ import (
 // checks if the AttributeCallback type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &AttributeCallback{}
 
-// AttributeCallback Optional definition of callback for getting the content of the Attribute based on the action
+// AttributeCallback struct for AttributeCallback
 type AttributeCallback struct {
 	// Context part of callback URL
 	CallbackContext string `json:"callbackContext"`

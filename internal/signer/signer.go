@@ -16,6 +16,7 @@ import (
 	"golang.org/x/oauth2/clientcredentials"
 	corev1 "k8s.io/api/core/v1"
 	"net/http"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"strings"
 	"time"
@@ -26,6 +27,8 @@ type czertainlySigner struct {
 	apiUrl        string
 	raProfileUuid string
 	raProfileName string
+
+	k8sClient client.Client
 }
 
 func CzertainlyHealthCheckerFromIssuerAndSecretData(ctx context.Context, issuerSpec *czertainlyissuerapi.IssuerSpec, authSecret corev1.Secret, caBundleSecretData map[string][]byte) (controllers.HealthChecker, error) {
@@ -110,7 +113,7 @@ func createHttpClient(ctx context.Context, issuerSpec *czertainlyissuerapi.Issue
 	}
 }
 
-func CzertainlySignerFromIssuerAndSecretData(ctx context.Context, issuerSpec *czertainlyissuerapi.IssuerSpec, authSecret corev1.Secret, caBundleSecretData map[string][]byte, annotations map[string]string) (controllers.Signer, error) {
+func CzertainlySignerFromIssuerAndSecretData(ctx context.Context, k8sClient client.Client, issuerSpec *czertainlyissuerapi.IssuerSpec, authSecret corev1.Secret, caBundleSecretData map[string][]byte, annotations map[string]string) (controllers.Signer, error) {
 	// l := log.FromContext(ctx)
 	czertainlySigner := czertainlySigner{}
 
@@ -135,15 +138,29 @@ func CzertainlySignerFromIssuerAndSecretData(ctx context.Context, issuerSpec *cz
 
 	czertainlySigner.raProfileUuid = issuerSpec.RaProfileUuid
 
+	czertainlySigner.k8sClient = k8sClient
+
 	return &czertainlySigner, nil
 }
 
-func (o *czertainlySigner) Check() error {
-	// check if the server is running and we can connect to it
-	_, _, err := o.httpClient.AuthenticationManagementAPI.Profile(context.Background()).Execute()
+func (o *czertainlySigner) Check(ctx context.Context) error {
+	l := log.FromContext(ctx)
+
+	// get information about the server
+	coreInfoResponseDto, _, err := o.httpClient.InfoAPI.GetInfo(ctx).Execute()
 	if err != nil {
 		return err
 	}
+
+	l.Info(fmt.Sprintf("Successfully connected to server version: %s", coreInfoResponseDto.App.Version))
+
+	// check if the server is running and we can connect to it
+	userDetailDto, _, err := o.httpClient.AuthenticationManagementAPI.Profile(ctx).Execute()
+	if err != nil {
+		return err
+	}
+
+	l.Info(fmt.Sprintf("Authenticated with user details: username=%s", userDetailDto.Username))
 
 	return nil
 }
@@ -169,6 +186,14 @@ type CertDetailsResponse struct {
 func (o *czertainlySigner) Sign(ctx context.Context, cr signer.CertificateRequestObject) ([]byte, error) {
 	l := log.FromContext(ctx)
 
+	// get information about the server
+	coreInfoResponseDto, _, err := o.httpClient.InfoAPI.GetInfo(ctx).Execute()
+	if err != nil {
+		return nil, err
+	}
+
+	l.Info(fmt.Sprintf("Connected to server version: %s", coreInfoResponseDto.App.Version))
+
 	_, _, csrBytes, err := cr.GetRequest()
 	if err != nil {
 		return nil, err
@@ -176,26 +201,42 @@ func (o *czertainlySigner) Sign(ctx context.Context, cr signer.CertificateReques
 
 	l.Info(fmt.Sprintf("Processing CSR: %s", string(csrBytes)))
 
-	raProfileDto, _, err := o.httpClient.RAProfileManagementAPI.GetRaProfileWithoutAuthority(context.Background(), o.raProfileUuid).Execute()
+	raProfileDto, _, err := o.httpClient.RAProfileManagementAPI.GetRaProfileWithoutAuthority(ctx, o.raProfileUuid).Execute()
 	if err != nil {
 		return nil, err
 	}
 
 	authorityUuid := raProfileDto.AuthorityInstanceUuid
 
-	issueCertificateRequest := czertainly.ClientCertificateSignRequestDto{
-		Request:    string(csrBytes),
-		Attributes: []czertainly.RequestAttributeDto{},
+	// check if annotations contains czertainly-issuer.czertainly.com/certificate-uuid
+	// if so, the request was already created and we need to use it instead of requesting new
+	uuid := ""
+	annotations := cr.GetAnnotations()
+	if annotations != nil {
+		uuid = annotations[certificateUuidAnnotation]
 	}
 
-	l.Info(fmt.Sprintf("Issuing certificate: authorityUuid=%s, raProfileUuid=%s", authorityUuid, o.raProfileUuid))
+	// request for new certificate only if czertainly-issuer.czertainly.com/certificate-uuid is not set
+	if uuid == "" {
+		issueCertificateRequest := czertainly.ClientCertificateSignRequestDto{
+			Request:    string(csrBytes),
+			Attributes: []czertainly.RequestAttributeDto{},
+		}
 
-	clientCertificateDataResponseDto, _, err := o.httpClient.ClientOperationsV2API.IssueCertificate(context.Background(), authorityUuid, o.raProfileUuid).ClientCertificateSignRequestDto(issueCertificateRequest).Execute()
-	if err != nil {
-		return nil, err
+		l.Info(fmt.Sprintf("Issuing certificate: authorityUuid=%s, raProfileUuid=%s", authorityUuid, o.raProfileUuid))
+
+		clientCertificateDataResponseDto, _, err := o.httpClient.ClientOperationsV2API.IssueCertificate(ctx, *authorityUuid, o.raProfileUuid).ClientCertificateSignRequestDto(issueCertificateRequest).Execute()
+		if err != nil {
+			return nil, err
+		}
+
+		uuid = clientCertificateDataResponseDto.Uuid
+
+		if err := patchCertificateRequestWithUUID(ctx, cr, o.k8sClient, uuid); err != nil {
+			l.Error(err, "Failed to annotate certificate request with UUID")
+			return nil, err
+		}
 	}
-
-	uuid := clientCertificateDataResponseDto.Uuid
 
 	l.Info(fmt.Sprintf("Waiting for certificate request to be processed: uuid=%s", uuid))
 
@@ -212,14 +253,77 @@ func (o *czertainlySigner) Sign(ctx context.Context, cr signer.CertificateReques
 			cert = c
 			break
 		} else if state == czertainly.CERTIFICATESTATE_FAILED {
-			l.Info(fmt.Sprintf("Certificate request failed: uuid=%s", uuid))
-			return nil, errors.New("certificate request failed")
+			// get the reason for the failure
+			certificateEventHistoryDto, _, err := o.httpClient.CertificateInventoryAPI.GetCertificateEventHistory(ctx, uuid).Execute()
+			if err != nil {
+				return nil, err
+			}
+
+			// get the first failed "Issue Certificate" event that has status "FAILED"
+			// it should be the last registered event that is failed from the history perspective
+			for _, event := range certificateEventHistoryDto {
+				if event.Event == "Issue Certificate" && event.Status == "FAILED" {
+					l.Info(fmt.Sprintf("Certificate request failed: uuid=%s, reason=%s", uuid, event.Message))
+					return nil, errors.New("certificate request failed with the message: " + event.Message)
+				}
+			}
+
+			l.Info(fmt.Sprintf("Certificate request failed with unkown reason: uuid=%s", uuid))
+			return nil, errors.New("certificate request failed with unknown reason")
 		} else if state == czertainly.CERTIFICATESTATE_REJECTED {
+			// get approvals for the certificate request
+			approvalResponseDto, _, err := o.httpClient.CertificateInventoryAPI.ListCertificateApprovals(ctx, uuid).Execute()
+			if err != nil {
+				return nil, err
+			}
+
+			// get the first approval that has status "EXPIRED" or "REJECTED" with resource "certificates" and action "issue"
+			for _, approval := range approvalResponseDto.Approvals {
+				if approval.Resource == "certificates" && approval.ResourceAction == "issue" {
+					if approval.Status == "EXPIRED" {
+						l.Info(fmt.Sprintf("Certificate request rejected as expired: uuid=%s", uuid))
+						return nil, errors.New("certificate request rejected as expired")
+					} else if approval.Status == "REJECTED" {
+						// get the reason for the rejection from the approval detail
+						approvalDetailDto, _, err := o.httpClient.ApprovalInventoryAPI.GetApproval(ctx, approval.ApprovalUuid).Execute()
+						if err != nil {
+							return nil, err
+						}
+
+						// get the first rejected approval reason
+						for _, approval := range approvalDetailDto.ApprovalSteps {
+							for _, recipient := range approval.ApprovalStepRecipients {
+								if recipient.Status == "REJECTED" {
+									if recipient.Comment != nil {
+										l.Info(fmt.Sprintf("Certificate request rejected: uuid=%s, reason=%s", uuid, *recipient.Comment))
+										return nil, errors.New("certificate request rejected with the message: " + *recipient.Comment)
+									} else {
+										l.Info(fmt.Sprintf("Certificate request rejected without reson: uuid=%s", uuid))
+										return nil, errors.New("certificate request rejected without reason")
+									}
+								}
+							}
+						}
+
+						l.Info(fmt.Sprintf("Certificate request rejected with unknown reason: uuid=%s", uuid))
+						return nil, errors.New("certificate request rejected with unknown reason")
+					}
+				}
+			}
+
 			l.Info(fmt.Sprintf("Certificate request rejected: uuid=%s", uuid))
 			return nil, errors.New("certificate request rejected")
+		} else if state == czertainly.CERTIFICATESTATE_PENDING_APPROVAL {
+			l.Info(fmt.Sprintf("Certificate request is pending approval: uuid=%s", uuid))
+			// wait for 30 second and check again
+			time.Sleep(30 * time.Second)
+		} else if state == czertainly.CERTIFICATESTATE_PENDING_ISSUE || state == czertainly.CERTIFICATESTATE_REQUESTED {
+			l.Info(fmt.Sprintf("Certificate request is pending issue: uuid=%s", uuid))
+			// wait for 30 second and check again
+			time.Sleep(30 * time.Second)
 		} else {
-			// wait for 1 second and check again
-			time.Sleep(1 * time.Second)
+			l.Info(fmt.Sprintf("Certificate request is in unknown state: uuid=%s, state=%s", uuid, state))
+			return nil, errors.New("certificate request is in unknown state")
 		}
 	}
 
@@ -234,6 +338,19 @@ func (o *czertainlySigner) Sign(ctx context.Context, cr signer.CertificateReques
 		return nil, err
 	}
 
+	// check that the certificate match the csr public key
+	if err := matchPublicKeysCsrCert(csrBytes, decodedCert); err != nil {
+		l.Error(err, "Public key algorithm mismatch between CSR and certificate")
+		return nil, err
+	}
+
+	// certificate is valid, write annotation to the certificate
+	// we need to get the certificate object from the certificate request owner reference
+	if err := patchOwningCertificateWithUUID(ctx, cr, o.k8sClient, uuid); err != nil {
+		l.Error(err, "Failed to annotate owning Certificate with UUID")
+		return nil, err
+	}
+
 	return pem.EncodeToMemory(&pem.Block{
 		Type:  "CERTIFICATE",
 		Bytes: decodedCert,
@@ -241,7 +358,7 @@ func (o *czertainlySigner) Sign(ctx context.Context, cr signer.CertificateReques
 }
 
 func (o *czertainlySigner) waitForCertificate(ctx context.Context, uuid string) (czertainly.CertificateState, string, error) {
-	certificateDetailDto, _, err := o.httpClient.CertificateInventoryAPI.GetCertificate(context.Background(), uuid).Execute()
+	certificateDetailDto, _, err := o.httpClient.CertificateInventoryAPI.GetCertificate(ctx, uuid).Execute()
 	if err != nil {
 		return "", "", err
 	}
@@ -250,7 +367,7 @@ func (o *czertainlySigner) waitForCertificate(ctx context.Context, uuid string) 
 	cert := certificateDetailDto.CertificateContent
 
 	if state == czertainly.CERTIFICATESTATE_ISSUED {
-		return state, cert, nil
+		return state, *cert, nil
 	} else {
 		return state, "", nil
 	}

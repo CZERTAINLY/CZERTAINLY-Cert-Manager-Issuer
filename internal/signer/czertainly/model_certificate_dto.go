@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -20,7 +20,7 @@ import (
 // checks if the CertificateDto type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &CertificateDto{}
 
-// CertificateDto List of related certificates
+// CertificateDto struct for CertificateDto
 type CertificateDto struct {
 	// UUID of the Certificate
 	Uuid string `json:"uuid"`
@@ -44,8 +44,11 @@ type CertificateDto struct {
 	SignatureAlgorithm string `json:"signatureAlgorithm"`
 	// Certificate key size
 	KeySize int32 `json:"keySize"`
+	// State of the Certificate
 	State CertificateState `json:"state"`
+	// Current validation status of the certificate
 	ValidationStatus CertificateValidationStatus `json:"validationStatus"`
+	// RA Profile associated to the Certificate
 	RaProfile *SimplifiedRaProfileDto `json:"raProfile,omitempty"`
 	// SHA256 fingerprint of the Certificate
 	Fingerprint *string `json:"fingerprint,omitempty"`
@@ -55,16 +58,18 @@ type CertificateDto struct {
 	Owner *string `json:"owner,omitempty"`
 	// Certificate Owner UUID
 	OwnerUuid *string `json:"ownerUuid,omitempty"`
-	CertificateType *CertificateType `json:"certificateType,omitempty"`
+	// Certificate type
+	CertificateType CertificateType `json:"certificateType"`
 	// Serial number of the issuer
 	IssuerSerialNumber *string `json:"issuerSerialNumber,omitempty"`
-	ComplianceStatus *ComplianceStatus `json:"complianceStatus,omitempty"`
+	// Certificate compliance status
+	ComplianceStatus ComplianceStatus `json:"complianceStatus"`
 	// UUID of the issuer certificate
 	IssuerCertificateUuid *string `json:"issuerCertificateUuid,omitempty"`
 	// Private Key Availability
 	PrivateKeyAvailability bool `json:"privateKeyAvailability"`
 	// Indicator whether CA is marked as trusted, set to null if certificate is not CA
-	TrustedCa bool `json:"trustedCa"`
+	TrustedCa *bool `json:"trustedCa,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -74,7 +79,7 @@ type _CertificateDto CertificateDto
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCertificateDto(uuid string, commonName string, subjectDn string, publicKeyAlgorithm string, signatureAlgorithm string, keySize int32, state CertificateState, validationStatus CertificateValidationStatus, privateKeyAvailability bool, trustedCa bool) *CertificateDto {
+func NewCertificateDto(uuid string, commonName string, subjectDn string, publicKeyAlgorithm string, signatureAlgorithm string, keySize int32, state CertificateState, validationStatus CertificateValidationStatus, certificateType CertificateType, complianceStatus ComplianceStatus, privateKeyAvailability bool) *CertificateDto {
 	this := CertificateDto{}
 	this.Uuid = uuid
 	this.CommonName = commonName
@@ -84,8 +89,9 @@ func NewCertificateDto(uuid string, commonName string, subjectDn string, publicK
 	this.KeySize = keySize
 	this.State = state
 	this.ValidationStatus = validationStatus
+	this.CertificateType = certificateType
+	this.ComplianceStatus = complianceStatus
 	this.PrivateKeyAvailability = privateKeyAvailability
-	this.TrustedCa = trustedCa
 	return &this
 }
 
@@ -609,36 +615,28 @@ func (o *CertificateDto) SetOwnerUuid(v string) {
 	o.OwnerUuid = &v
 }
 
-// GetCertificateType returns the CertificateType field value if set, zero value otherwise.
+// GetCertificateType returns the CertificateType field value
 func (o *CertificateDto) GetCertificateType() CertificateType {
-	if o == nil || IsNil(o.CertificateType) {
+	if o == nil {
 		var ret CertificateType
 		return ret
 	}
-	return *o.CertificateType
+
+	return o.CertificateType
 }
 
-// GetCertificateTypeOk returns a tuple with the CertificateType field value if set, nil otherwise
+// GetCertificateTypeOk returns a tuple with the CertificateType field value
 // and a boolean to check if the value has been set.
 func (o *CertificateDto) GetCertificateTypeOk() (*CertificateType, bool) {
-	if o == nil || IsNil(o.CertificateType) {
+	if o == nil {
 		return nil, false
 	}
-	return o.CertificateType, true
+	return &o.CertificateType, true
 }
 
-// HasCertificateType returns a boolean if a field has been set.
-func (o *CertificateDto) HasCertificateType() bool {
-	if o != nil && !IsNil(o.CertificateType) {
-		return true
-	}
-
-	return false
-}
-
-// SetCertificateType gets a reference to the given CertificateType and assigns it to the CertificateType field.
+// SetCertificateType sets field value
 func (o *CertificateDto) SetCertificateType(v CertificateType) {
-	o.CertificateType = &v
+	o.CertificateType = v
 }
 
 // GetIssuerSerialNumber returns the IssuerSerialNumber field value if set, zero value otherwise.
@@ -673,36 +671,28 @@ func (o *CertificateDto) SetIssuerSerialNumber(v string) {
 	o.IssuerSerialNumber = &v
 }
 
-// GetComplianceStatus returns the ComplianceStatus field value if set, zero value otherwise.
+// GetComplianceStatus returns the ComplianceStatus field value
 func (o *CertificateDto) GetComplianceStatus() ComplianceStatus {
-	if o == nil || IsNil(o.ComplianceStatus) {
+	if o == nil {
 		var ret ComplianceStatus
 		return ret
 	}
-	return *o.ComplianceStatus
+
+	return o.ComplianceStatus
 }
 
-// GetComplianceStatusOk returns a tuple with the ComplianceStatus field value if set, nil otherwise
+// GetComplianceStatusOk returns a tuple with the ComplianceStatus field value
 // and a boolean to check if the value has been set.
 func (o *CertificateDto) GetComplianceStatusOk() (*ComplianceStatus, bool) {
-	if o == nil || IsNil(o.ComplianceStatus) {
+	if o == nil {
 		return nil, false
 	}
-	return o.ComplianceStatus, true
+	return &o.ComplianceStatus, true
 }
 
-// HasComplianceStatus returns a boolean if a field has been set.
-func (o *CertificateDto) HasComplianceStatus() bool {
-	if o != nil && !IsNil(o.ComplianceStatus) {
-		return true
-	}
-
-	return false
-}
-
-// SetComplianceStatus gets a reference to the given ComplianceStatus and assigns it to the ComplianceStatus field.
+// SetComplianceStatus sets field value
 func (o *CertificateDto) SetComplianceStatus(v ComplianceStatus) {
-	o.ComplianceStatus = &v
+	o.ComplianceStatus = v
 }
 
 // GetIssuerCertificateUuid returns the IssuerCertificateUuid field value if set, zero value otherwise.
@@ -761,28 +751,36 @@ func (o *CertificateDto) SetPrivateKeyAvailability(v bool) {
 	o.PrivateKeyAvailability = v
 }
 
-// GetTrustedCa returns the TrustedCa field value
+// GetTrustedCa returns the TrustedCa field value if set, zero value otherwise.
 func (o *CertificateDto) GetTrustedCa() bool {
-	if o == nil {
+	if o == nil || IsNil(o.TrustedCa) {
 		var ret bool
 		return ret
 	}
-
-	return o.TrustedCa
+	return *o.TrustedCa
 }
 
-// GetTrustedCaOk returns a tuple with the TrustedCa field value
+// GetTrustedCaOk returns a tuple with the TrustedCa field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *CertificateDto) GetTrustedCaOk() (*bool, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.TrustedCa) {
 		return nil, false
 	}
-	return &o.TrustedCa, true
+	return o.TrustedCa, true
 }
 
-// SetTrustedCa sets field value
+// HasTrustedCa returns a boolean if a field has been set.
+func (o *CertificateDto) HasTrustedCa() bool {
+	if o != nil && !IsNil(o.TrustedCa) {
+		return true
+	}
+
+	return false
+}
+
+// SetTrustedCa gets a reference to the given bool and assigns it to the TrustedCa field.
 func (o *CertificateDto) SetTrustedCa(v bool) {
-	o.TrustedCa = v
+	o.TrustedCa = &v
 }
 
 func (o CertificateDto) MarshalJSON() ([]byte, error) {
@@ -833,20 +831,18 @@ func (o CertificateDto) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.OwnerUuid) {
 		toSerialize["ownerUuid"] = o.OwnerUuid
 	}
-	if !IsNil(o.CertificateType) {
-		toSerialize["certificateType"] = o.CertificateType
-	}
+	toSerialize["certificateType"] = o.CertificateType
 	if !IsNil(o.IssuerSerialNumber) {
 		toSerialize["issuerSerialNumber"] = o.IssuerSerialNumber
 	}
-	if !IsNil(o.ComplianceStatus) {
-		toSerialize["complianceStatus"] = o.ComplianceStatus
-	}
+	toSerialize["complianceStatus"] = o.ComplianceStatus
 	if !IsNil(o.IssuerCertificateUuid) {
 		toSerialize["issuerCertificateUuid"] = o.IssuerCertificateUuid
 	}
 	toSerialize["privateKeyAvailability"] = o.PrivateKeyAvailability
-	toSerialize["trustedCa"] = o.TrustedCa
+	if !IsNil(o.TrustedCa) {
+		toSerialize["trustedCa"] = o.TrustedCa
+	}
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -868,8 +864,9 @@ func (o *CertificateDto) UnmarshalJSON(data []byte) (err error) {
 		"keySize",
 		"state",
 		"validationStatus",
+		"certificateType",
+		"complianceStatus",
 		"privateKeyAvailability",
-		"trustedCa",
 	}
 
 	allProperties := make(map[string]interface{})

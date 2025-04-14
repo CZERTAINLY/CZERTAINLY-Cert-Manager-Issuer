@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -44,8 +44,11 @@ type CertificateDetailDto struct {
 	SignatureAlgorithm string `json:"signatureAlgorithm"`
 	// Certificate key size
 	KeySize int32 `json:"keySize"`
+	// State of the Certificate
 	State CertificateState `json:"state"`
+	// Current validation status of the certificate
 	ValidationStatus CertificateValidationStatus `json:"validationStatus"`
+	// RA Profile associated to the Certificate
 	RaProfile *SimplifiedRaProfileDto `json:"raProfile,omitempty"`
 	// SHA256 fingerprint of the Certificate
 	Fingerprint *string `json:"fingerprint,omitempty"`
@@ -55,25 +58,28 @@ type CertificateDetailDto struct {
 	Owner *string `json:"owner,omitempty"`
 	// Certificate Owner UUID
 	OwnerUuid *string `json:"ownerUuid,omitempty"`
-	CertificateType *CertificateType `json:"certificateType,omitempty"`
+	// Certificate type
+	CertificateType CertificateType `json:"certificateType"`
 	// Serial number of the issuer
 	IssuerSerialNumber *string `json:"issuerSerialNumber,omitempty"`
-	ComplianceStatus *ComplianceStatus `json:"complianceStatus,omitempty"`
+	// Certificate compliance status
+	ComplianceStatus ComplianceStatus `json:"complianceStatus"`
 	// UUID of the issuer certificate
 	IssuerCertificateUuid *string `json:"issuerCertificateUuid,omitempty"`
 	// Private Key Availability
 	PrivateKeyAvailability bool `json:"privateKeyAvailability"`
 	// Indicator whether CA is marked as trusted, set to null if certificate is not CA
-	TrustedCa bool `json:"trustedCa"`
+	TrustedCa *bool `json:"trustedCa,omitempty"`
 	// Extended key usages
 	ExtendedKeyUsage []string `json:"extendedKeyUsage,omitempty"`
 	// Key usages
-	KeyUsage []string `json:"keyUsage"`
-	SubjectType CertificateSubjectType `json:"subjectType"`
+	KeyUsage []string `json:"keyUsage,omitempty"`
+	// Certificate subject type
+	SubjectType *CertificateSubjectType `json:"subjectType,omitempty"`
 	// Certificate metadata
 	Metadata []MetadataResponseDto `json:"metadata,omitempty"`
 	// Base64 encoded Certificate content
-	CertificateContent string `json:"certificateContent"`
+	CertificateContent *string `json:"certificateContent,omitempty"`
 	// Subject alternative names
 	SubjectAlternativeNames map[string][]string `json:"subjectAlternativeNames,omitempty"`
 	// Locations associated to the Certificate
@@ -82,7 +88,9 @@ type CertificateDetailDto struct {
 	NonCompliantRules []CertificateComplianceResultDto `json:"nonCompliantRules,omitempty"`
 	// List of Custom Attributes
 	CustomAttributes []ResponseAttributeDto `json:"customAttributes,omitempty"`
+	// Key Pair of the certificate
 	Key *KeyDto `json:"key,omitempty"`
+	// Certificate request data
 	CertificateRequest *CertificateRequestDto `json:"certificateRequest,omitempty"`
 	// Source certificate UUID
 	SourceCertificateUuid *string `json:"sourceCertificateUuid,omitempty"`
@@ -92,6 +100,7 @@ type CertificateDetailDto struct {
 	RevokeAttributes []ResponseAttributeDto `json:"revokeAttributes,omitempty"`
 	// List of related certificates
 	RelatedCertificates []CertificateDto `json:"relatedCertificates,omitempty"`
+	// Information about protocol used to issue the certificate
 	ProtocolInfo *CertificateProtocolDto `json:"protocolInfo,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
@@ -102,7 +111,7 @@ type _CertificateDetailDto CertificateDetailDto
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCertificateDetailDto(uuid string, commonName string, subjectDn string, publicKeyAlgorithm string, signatureAlgorithm string, keySize int32, state CertificateState, validationStatus CertificateValidationStatus, privateKeyAvailability bool, trustedCa bool, keyUsage []string, subjectType CertificateSubjectType, certificateContent string) *CertificateDetailDto {
+func NewCertificateDetailDto(uuid string, commonName string, subjectDn string, publicKeyAlgorithm string, signatureAlgorithm string, keySize int32, state CertificateState, validationStatus CertificateValidationStatus, certificateType CertificateType, complianceStatus ComplianceStatus, privateKeyAvailability bool) *CertificateDetailDto {
 	this := CertificateDetailDto{}
 	this.Uuid = uuid
 	this.CommonName = commonName
@@ -112,11 +121,9 @@ func NewCertificateDetailDto(uuid string, commonName string, subjectDn string, p
 	this.KeySize = keySize
 	this.State = state
 	this.ValidationStatus = validationStatus
+	this.CertificateType = certificateType
+	this.ComplianceStatus = complianceStatus
 	this.PrivateKeyAvailability = privateKeyAvailability
-	this.TrustedCa = trustedCa
-	this.KeyUsage = keyUsage
-	this.SubjectType = subjectType
-	this.CertificateContent = certificateContent
 	return &this
 }
 
@@ -640,36 +647,28 @@ func (o *CertificateDetailDto) SetOwnerUuid(v string) {
 	o.OwnerUuid = &v
 }
 
-// GetCertificateType returns the CertificateType field value if set, zero value otherwise.
+// GetCertificateType returns the CertificateType field value
 func (o *CertificateDetailDto) GetCertificateType() CertificateType {
-	if o == nil || IsNil(o.CertificateType) {
+	if o == nil {
 		var ret CertificateType
 		return ret
 	}
-	return *o.CertificateType
+
+	return o.CertificateType
 }
 
-// GetCertificateTypeOk returns a tuple with the CertificateType field value if set, nil otherwise
+// GetCertificateTypeOk returns a tuple with the CertificateType field value
 // and a boolean to check if the value has been set.
 func (o *CertificateDetailDto) GetCertificateTypeOk() (*CertificateType, bool) {
-	if o == nil || IsNil(o.CertificateType) {
+	if o == nil {
 		return nil, false
 	}
-	return o.CertificateType, true
+	return &o.CertificateType, true
 }
 
-// HasCertificateType returns a boolean if a field has been set.
-func (o *CertificateDetailDto) HasCertificateType() bool {
-	if o != nil && !IsNil(o.CertificateType) {
-		return true
-	}
-
-	return false
-}
-
-// SetCertificateType gets a reference to the given CertificateType and assigns it to the CertificateType field.
+// SetCertificateType sets field value
 func (o *CertificateDetailDto) SetCertificateType(v CertificateType) {
-	o.CertificateType = &v
+	o.CertificateType = v
 }
 
 // GetIssuerSerialNumber returns the IssuerSerialNumber field value if set, zero value otherwise.
@@ -704,36 +703,28 @@ func (o *CertificateDetailDto) SetIssuerSerialNumber(v string) {
 	o.IssuerSerialNumber = &v
 }
 
-// GetComplianceStatus returns the ComplianceStatus field value if set, zero value otherwise.
+// GetComplianceStatus returns the ComplianceStatus field value
 func (o *CertificateDetailDto) GetComplianceStatus() ComplianceStatus {
-	if o == nil || IsNil(o.ComplianceStatus) {
+	if o == nil {
 		var ret ComplianceStatus
 		return ret
 	}
-	return *o.ComplianceStatus
+
+	return o.ComplianceStatus
 }
 
-// GetComplianceStatusOk returns a tuple with the ComplianceStatus field value if set, nil otherwise
+// GetComplianceStatusOk returns a tuple with the ComplianceStatus field value
 // and a boolean to check if the value has been set.
 func (o *CertificateDetailDto) GetComplianceStatusOk() (*ComplianceStatus, bool) {
-	if o == nil || IsNil(o.ComplianceStatus) {
+	if o == nil {
 		return nil, false
 	}
-	return o.ComplianceStatus, true
+	return &o.ComplianceStatus, true
 }
 
-// HasComplianceStatus returns a boolean if a field has been set.
-func (o *CertificateDetailDto) HasComplianceStatus() bool {
-	if o != nil && !IsNil(o.ComplianceStatus) {
-		return true
-	}
-
-	return false
-}
-
-// SetComplianceStatus gets a reference to the given ComplianceStatus and assigns it to the ComplianceStatus field.
+// SetComplianceStatus sets field value
 func (o *CertificateDetailDto) SetComplianceStatus(v ComplianceStatus) {
-	o.ComplianceStatus = &v
+	o.ComplianceStatus = v
 }
 
 // GetIssuerCertificateUuid returns the IssuerCertificateUuid field value if set, zero value otherwise.
@@ -792,28 +783,36 @@ func (o *CertificateDetailDto) SetPrivateKeyAvailability(v bool) {
 	o.PrivateKeyAvailability = v
 }
 
-// GetTrustedCa returns the TrustedCa field value
+// GetTrustedCa returns the TrustedCa field value if set, zero value otherwise.
 func (o *CertificateDetailDto) GetTrustedCa() bool {
-	if o == nil {
+	if o == nil || IsNil(o.TrustedCa) {
 		var ret bool
 		return ret
 	}
-
-	return o.TrustedCa
+	return *o.TrustedCa
 }
 
-// GetTrustedCaOk returns a tuple with the TrustedCa field value
+// GetTrustedCaOk returns a tuple with the TrustedCa field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *CertificateDetailDto) GetTrustedCaOk() (*bool, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.TrustedCa) {
 		return nil, false
 	}
-	return &o.TrustedCa, true
+	return o.TrustedCa, true
 }
 
-// SetTrustedCa sets field value
+// HasTrustedCa returns a boolean if a field has been set.
+func (o *CertificateDetailDto) HasTrustedCa() bool {
+	if o != nil && !IsNil(o.TrustedCa) {
+		return true
+	}
+
+	return false
+}
+
+// SetTrustedCa gets a reference to the given bool and assigns it to the TrustedCa field.
 func (o *CertificateDetailDto) SetTrustedCa(v bool) {
-	o.TrustedCa = v
+	o.TrustedCa = &v
 }
 
 // GetExtendedKeyUsage returns the ExtendedKeyUsage field value if set, zero value otherwise.
@@ -848,52 +847,68 @@ func (o *CertificateDetailDto) SetExtendedKeyUsage(v []string) {
 	o.ExtendedKeyUsage = v
 }
 
-// GetKeyUsage returns the KeyUsage field value
+// GetKeyUsage returns the KeyUsage field value if set, zero value otherwise.
 func (o *CertificateDetailDto) GetKeyUsage() []string {
-	if o == nil {
+	if o == nil || IsNil(o.KeyUsage) {
 		var ret []string
 		return ret
 	}
-
 	return o.KeyUsage
 }
 
-// GetKeyUsageOk returns a tuple with the KeyUsage field value
+// GetKeyUsageOk returns a tuple with the KeyUsage field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *CertificateDetailDto) GetKeyUsageOk() ([]string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.KeyUsage) {
 		return nil, false
 	}
 	return o.KeyUsage, true
 }
 
-// SetKeyUsage sets field value
+// HasKeyUsage returns a boolean if a field has been set.
+func (o *CertificateDetailDto) HasKeyUsage() bool {
+	if o != nil && !IsNil(o.KeyUsage) {
+		return true
+	}
+
+	return false
+}
+
+// SetKeyUsage gets a reference to the given []string and assigns it to the KeyUsage field.
 func (o *CertificateDetailDto) SetKeyUsage(v []string) {
 	o.KeyUsage = v
 }
 
-// GetSubjectType returns the SubjectType field value
+// GetSubjectType returns the SubjectType field value if set, zero value otherwise.
 func (o *CertificateDetailDto) GetSubjectType() CertificateSubjectType {
-	if o == nil {
+	if o == nil || IsNil(o.SubjectType) {
 		var ret CertificateSubjectType
 		return ret
 	}
-
-	return o.SubjectType
+	return *o.SubjectType
 }
 
-// GetSubjectTypeOk returns a tuple with the SubjectType field value
+// GetSubjectTypeOk returns a tuple with the SubjectType field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *CertificateDetailDto) GetSubjectTypeOk() (*CertificateSubjectType, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.SubjectType) {
 		return nil, false
 	}
-	return &o.SubjectType, true
+	return o.SubjectType, true
 }
 
-// SetSubjectType sets field value
+// HasSubjectType returns a boolean if a field has been set.
+func (o *CertificateDetailDto) HasSubjectType() bool {
+	if o != nil && !IsNil(o.SubjectType) {
+		return true
+	}
+
+	return false
+}
+
+// SetSubjectType gets a reference to the given CertificateSubjectType and assigns it to the SubjectType field.
 func (o *CertificateDetailDto) SetSubjectType(v CertificateSubjectType) {
-	o.SubjectType = v
+	o.SubjectType = &v
 }
 
 // GetMetadata returns the Metadata field value if set, zero value otherwise.
@@ -928,28 +943,36 @@ func (o *CertificateDetailDto) SetMetadata(v []MetadataResponseDto) {
 	o.Metadata = v
 }
 
-// GetCertificateContent returns the CertificateContent field value
+// GetCertificateContent returns the CertificateContent field value if set, zero value otherwise.
 func (o *CertificateDetailDto) GetCertificateContent() string {
-	if o == nil {
+	if o == nil || IsNil(o.CertificateContent) {
 		var ret string
 		return ret
 	}
-
-	return o.CertificateContent
+	return *o.CertificateContent
 }
 
-// GetCertificateContentOk returns a tuple with the CertificateContent field value
+// GetCertificateContentOk returns a tuple with the CertificateContent field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *CertificateDetailDto) GetCertificateContentOk() (*string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.CertificateContent) {
 		return nil, false
 	}
-	return &o.CertificateContent, true
+	return o.CertificateContent, true
 }
 
-// SetCertificateContent sets field value
+// HasCertificateContent returns a boolean if a field has been set.
+func (o *CertificateDetailDto) HasCertificateContent() bool {
+	if o != nil && !IsNil(o.CertificateContent) {
+		return true
+	}
+
+	return false
+}
+
+// SetCertificateContent gets a reference to the given string and assigns it to the CertificateContent field.
 func (o *CertificateDetailDto) SetCertificateContent(v string) {
-	o.CertificateContent = v
+	o.CertificateContent = &v
 }
 
 // GetSubjectAlternativeNames returns the SubjectAlternativeNames field value if set, zero value otherwise.
@@ -979,7 +1002,7 @@ func (o *CertificateDetailDto) HasSubjectAlternativeNames() bool {
 	return false
 }
 
-// SetSubjectAlternativeNames gets a reference to the given map[string]map[string]interface{} and assigns it to the SubjectAlternativeNames field.
+// SetSubjectAlternativeNames gets a reference to the given map[string][]string and assigns it to the SubjectAlternativeNames field.
 func (o *CertificateDetailDto) SetSubjectAlternativeNames(v map[string][]string) {
 	o.SubjectAlternativeNames = v
 }
@@ -1352,29 +1375,33 @@ func (o CertificateDetailDto) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.OwnerUuid) {
 		toSerialize["ownerUuid"] = o.OwnerUuid
 	}
-	if !IsNil(o.CertificateType) {
-		toSerialize["certificateType"] = o.CertificateType
-	}
+	toSerialize["certificateType"] = o.CertificateType
 	if !IsNil(o.IssuerSerialNumber) {
 		toSerialize["issuerSerialNumber"] = o.IssuerSerialNumber
 	}
-	if !IsNil(o.ComplianceStatus) {
-		toSerialize["complianceStatus"] = o.ComplianceStatus
-	}
+	toSerialize["complianceStatus"] = o.ComplianceStatus
 	if !IsNil(o.IssuerCertificateUuid) {
 		toSerialize["issuerCertificateUuid"] = o.IssuerCertificateUuid
 	}
 	toSerialize["privateKeyAvailability"] = o.PrivateKeyAvailability
-	toSerialize["trustedCa"] = o.TrustedCa
+	if !IsNil(o.TrustedCa) {
+		toSerialize["trustedCa"] = o.TrustedCa
+	}
 	if !IsNil(o.ExtendedKeyUsage) {
 		toSerialize["extendedKeyUsage"] = o.ExtendedKeyUsage
 	}
-	toSerialize["keyUsage"] = o.KeyUsage
-	toSerialize["subjectType"] = o.SubjectType
+	if !IsNil(o.KeyUsage) {
+		toSerialize["keyUsage"] = o.KeyUsage
+	}
+	if !IsNil(o.SubjectType) {
+		toSerialize["subjectType"] = o.SubjectType
+	}
 	if !IsNil(o.Metadata) {
 		toSerialize["metadata"] = o.Metadata
 	}
-	toSerialize["certificateContent"] = o.CertificateContent
+	if !IsNil(o.CertificateContent) {
+		toSerialize["certificateContent"] = o.CertificateContent
+	}
 	if !IsNil(o.SubjectAlternativeNames) {
 		toSerialize["subjectAlternativeNames"] = o.SubjectAlternativeNames
 	}
@@ -1429,6 +1456,8 @@ func (o *CertificateDetailDto) UnmarshalJSON(data []byte) (err error) {
 		"keySize",
 		"state",
 		"validationStatus",
+		"certificateType",
+		"complianceStatus",
 		"privateKeyAvailability",
 	}
 

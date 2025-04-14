@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -19,7 +19,7 @@ import (
 // checks if the BooleanAttributeContent type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &BooleanAttributeContent{}
 
-// BooleanAttributeContent struct for BooleanAttributeContent
+// BooleanAttributeContent Boolean attribute content to store true/false values
 type BooleanAttributeContent struct {
 	// Content Reference
 	Reference *string `json:"reference,omitempty"`

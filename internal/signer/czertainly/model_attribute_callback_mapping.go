@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -19,11 +19,13 @@ import (
 // checks if the AttributeCallbackMapping type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &AttributeCallbackMapping{}
 
-// AttributeCallbackMapping Mappings for the callback method
+// AttributeCallbackMapping struct for AttributeCallbackMapping
 type AttributeCallbackMapping struct {
 	// Name of the attribute whose value is to be used as value of path variable or request param or body field.It is optional and must be set only if value is not set.
 	From *string `json:"from,omitempty"`
+	// Type of the attribute. It is optional and must be set only if special behaviour is needed.
 	AttributeType *AttributeType `json:"attributeType,omitempty"`
+	// Type of the attribute content. 
 	AttributeContentType *AttributeContentType `json:"attributeContentType,omitempty"`
 	// Name of the path variable or request param or body field which is to be used to assign value of attribute
 	To string `json:"to"`

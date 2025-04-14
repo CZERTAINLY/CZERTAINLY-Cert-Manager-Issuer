@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -16,7 +16,7 @@ import (
 	"fmt"
 )
 
-// ProgrammingLanguageEnum Definition of programming languages used for code
+// ProgrammingLanguageEnum the model 'ProgrammingLanguageEnum'
 type ProgrammingLanguageEnum string
 
 // List of ProgrammingLanguageEnum

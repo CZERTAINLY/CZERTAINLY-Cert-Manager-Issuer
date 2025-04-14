@@ -7,6 +7,8 @@ toolchain go1.23.0
 require (
 	github.com/cert-manager/cert-manager v1.15.3
 	github.com/cert-manager/issuer-lib v0.8.0
+	golang.org/x/oauth2 v0.21.0
+	gopkg.in/validator.v2 v2.0.1
 	k8s.io/api v0.31.0
 	k8s.io/apimachinery v0.31.0
 	k8s.io/client-go v0.31.0
@@ -59,7 +61,6 @@ require (
 	golang.org/x/crypto v0.24.0 // indirect
 	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842 // indirect
 	golang.org/x/net v0.26.0 // indirect
-	golang.org/x/oauth2 v0.21.0 // indirect
 	golang.org/x/sys v0.21.0 // indirect
 	golang.org/x/term v0.21.0 // indirect
 	golang.org/x/text v0.16.0 // indirect

@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -19,7 +19,7 @@ import (
 // checks if the CertificateComplianceResultDto type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &CertificateComplianceResultDto{}
 
-// CertificateComplianceResultDto Certificate compliance check result
+// CertificateComplianceResultDto struct for CertificateComplianceResultDto
 type CertificateComplianceResultDto struct {
 	// Name of the Compliance Provider
 	ConnectorName string `json:"connectorName"`
@@ -27,6 +27,7 @@ type CertificateComplianceResultDto struct {
 	RuleName string `json:"ruleName"`
 	// Description of the rule
 	RuleDescription string `json:"ruleDescription"`
+	// Status of the rule
 	Status ComplianceRuleStatus `json:"status"`
 	// Attributes of the rule
 	Attributes []ResponseAttributeDto `json:"attributes,omitempty"`

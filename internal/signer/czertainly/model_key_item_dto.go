@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -20,14 +20,14 @@ import (
 // checks if the KeyItemDto type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &KeyItemDto{}
 
-// KeyItemDto Key Items
+// KeyItemDto struct for KeyItemDto
 type KeyItemDto struct {
 	// Object identifier
 	Uuid string `json:"uuid"`
 	// Object Name
 	Name string `json:"name"`
 	// Description of the Key
-	Description string `json:"description"`
+	Description *string `json:"description,omitempty"`
 	// Creation time of the Key. If the key is discovered from the connector, then it will be returned
 	CreationTime time.Time `json:"creationTime"`
 	// UUID of the wrapper object
@@ -37,9 +37,9 @@ type KeyItemDto struct {
 	// Name of the Token Profile
 	TokenProfileName *string `json:"tokenProfileName,omitempty"`
 	// Token Instance UUID
-	TokenInstanceUuid string `json:"tokenInstanceUuid"`
+	TokenInstanceUuid *string `json:"tokenInstanceUuid,omitempty"`
 	// Token Instance Name
-	TokenInstanceName string `json:"tokenInstanceName"`
+	TokenInstanceName *string `json:"tokenInstanceName,omitempty"`
 	// Owner of the Key
 	Owner *string `json:"owner,omitempty"`
 	// UUID of the owner of the Key
@@ -47,18 +47,22 @@ type KeyItemDto struct {
 	// Groups associated to the Key
 	Groups []GroupDto `json:"groups,omitempty"`
 	// Number of associated objects
-	Associations *int32 `json:"associations,omitempty"`
+	Associations int32 `json:"associations"`
 	// UUID of the key item in the Connector
-	KeyReferenceUuid string `json:"keyReferenceUuid"`
+	KeyReferenceUuid *string `json:"keyReferenceUuid,omitempty"`
+	// Type of the Key
 	Type KeyType `json:"type"`
+	// Key Algorithm
 	KeyAlgorithm KeyAlgorithm `json:"keyAlgorithm"`
-	Format *KeyFormat `json:"format,omitempty"`
+	// Key Format
+	Format KeyFormat `json:"format"`
 	// Key Length
-	Length *int32 `json:"length,omitempty"`
+	Length int32 `json:"length"`
 	// Key Usages
-	Usage []KeyUsage `json:"usage"`
+	Usage []KeyUsage `json:"usage,omitempty"`
 	// Boolean describing if the key is enabled or not
 	Enabled bool `json:"enabled"`
+	// Key State
 	State KeyState `json:"state"`
 	AdditionalProperties map[string]interface{}
 }
@@ -69,19 +73,17 @@ type _KeyItemDto KeyItemDto
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewKeyItemDto(uuid string, name string, description string, creationTime time.Time, keyWrapperUuid string, tokenInstanceUuid string, tokenInstanceName string, keyReferenceUuid string, type_ KeyType, keyAlgorithm KeyAlgorithm, usage []KeyUsage, enabled bool, state KeyState) *KeyItemDto {
+func NewKeyItemDto(uuid string, name string, creationTime time.Time, keyWrapperUuid string, associations int32, type_ KeyType, keyAlgorithm KeyAlgorithm, format KeyFormat, length int32, enabled bool, state KeyState) *KeyItemDto {
 	this := KeyItemDto{}
 	this.Uuid = uuid
 	this.Name = name
-	this.Description = description
 	this.CreationTime = creationTime
 	this.KeyWrapperUuid = keyWrapperUuid
-	this.TokenInstanceUuid = tokenInstanceUuid
-	this.TokenInstanceName = tokenInstanceName
-	this.KeyReferenceUuid = keyReferenceUuid
+	this.Associations = associations
 	this.Type = type_
 	this.KeyAlgorithm = keyAlgorithm
-	this.Usage = usage
+	this.Format = format
+	this.Length = length
 	this.Enabled = enabled
 	this.State = state
 	return &this
@@ -143,28 +145,36 @@ func (o *KeyItemDto) SetName(v string) {
 	o.Name = v
 }
 
-// GetDescription returns the Description field value
+// GetDescription returns the Description field value if set, zero value otherwise.
 func (o *KeyItemDto) GetDescription() string {
-	if o == nil {
+	if o == nil || IsNil(o.Description) {
 		var ret string
 		return ret
 	}
-
-	return o.Description
+	return *o.Description
 }
 
-// GetDescriptionOk returns a tuple with the Description field value
+// GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *KeyItemDto) GetDescriptionOk() (*string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.Description) {
 		return nil, false
 	}
-	return &o.Description, true
+	return o.Description, true
 }
 
-// SetDescription sets field value
+// HasDescription returns a boolean if a field has been set.
+func (o *KeyItemDto) HasDescription() bool {
+	if o != nil && !IsNil(o.Description) {
+		return true
+	}
+
+	return false
+}
+
+// SetDescription gets a reference to the given string and assigns it to the Description field.
 func (o *KeyItemDto) SetDescription(v string) {
-	o.Description = v
+	o.Description = &v
 }
 
 // GetCreationTime returns the CreationTime field value
@@ -279,52 +289,68 @@ func (o *KeyItemDto) SetTokenProfileName(v string) {
 	o.TokenProfileName = &v
 }
 
-// GetTokenInstanceUuid returns the TokenInstanceUuid field value
+// GetTokenInstanceUuid returns the TokenInstanceUuid field value if set, zero value otherwise.
 func (o *KeyItemDto) GetTokenInstanceUuid() string {
-	if o == nil {
+	if o == nil || IsNil(o.TokenInstanceUuid) {
 		var ret string
 		return ret
 	}
-
-	return o.TokenInstanceUuid
+	return *o.TokenInstanceUuid
 }
 
-// GetTokenInstanceUuidOk returns a tuple with the TokenInstanceUuid field value
+// GetTokenInstanceUuidOk returns a tuple with the TokenInstanceUuid field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *KeyItemDto) GetTokenInstanceUuidOk() (*string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.TokenInstanceUuid) {
 		return nil, false
 	}
-	return &o.TokenInstanceUuid, true
+	return o.TokenInstanceUuid, true
 }
 
-// SetTokenInstanceUuid sets field value
+// HasTokenInstanceUuid returns a boolean if a field has been set.
+func (o *KeyItemDto) HasTokenInstanceUuid() bool {
+	if o != nil && !IsNil(o.TokenInstanceUuid) {
+		return true
+	}
+
+	return false
+}
+
+// SetTokenInstanceUuid gets a reference to the given string and assigns it to the TokenInstanceUuid field.
 func (o *KeyItemDto) SetTokenInstanceUuid(v string) {
-	o.TokenInstanceUuid = v
+	o.TokenInstanceUuid = &v
 }
 
-// GetTokenInstanceName returns the TokenInstanceName field value
+// GetTokenInstanceName returns the TokenInstanceName field value if set, zero value otherwise.
 func (o *KeyItemDto) GetTokenInstanceName() string {
-	if o == nil {
+	if o == nil || IsNil(o.TokenInstanceName) {
 		var ret string
 		return ret
 	}
-
-	return o.TokenInstanceName
+	return *o.TokenInstanceName
 }
 
-// GetTokenInstanceNameOk returns a tuple with the TokenInstanceName field value
+// GetTokenInstanceNameOk returns a tuple with the TokenInstanceName field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *KeyItemDto) GetTokenInstanceNameOk() (*string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.TokenInstanceName) {
 		return nil, false
 	}
-	return &o.TokenInstanceName, true
+	return o.TokenInstanceName, true
 }
 
-// SetTokenInstanceName sets field value
+// HasTokenInstanceName returns a boolean if a field has been set.
+func (o *KeyItemDto) HasTokenInstanceName() bool {
+	if o != nil && !IsNil(o.TokenInstanceName) {
+		return true
+	}
+
+	return false
+}
+
+// SetTokenInstanceName gets a reference to the given string and assigns it to the TokenInstanceName field.
 func (o *KeyItemDto) SetTokenInstanceName(v string) {
-	o.TokenInstanceName = v
+	o.TokenInstanceName = &v
 }
 
 // GetOwner returns the Owner field value if set, zero value otherwise.
@@ -423,60 +449,60 @@ func (o *KeyItemDto) SetGroups(v []GroupDto) {
 	o.Groups = v
 }
 
-// GetAssociations returns the Associations field value if set, zero value otherwise.
+// GetAssociations returns the Associations field value
 func (o *KeyItemDto) GetAssociations() int32 {
-	if o == nil || IsNil(o.Associations) {
+	if o == nil {
 		var ret int32
 		return ret
 	}
-	return *o.Associations
+
+	return o.Associations
 }
 
-// GetAssociationsOk returns a tuple with the Associations field value if set, nil otherwise
+// GetAssociationsOk returns a tuple with the Associations field value
 // and a boolean to check if the value has been set.
 func (o *KeyItemDto) GetAssociationsOk() (*int32, bool) {
-	if o == nil || IsNil(o.Associations) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Associations, true
+	return &o.Associations, true
 }
 
-// HasAssociations returns a boolean if a field has been set.
-func (o *KeyItemDto) HasAssociations() bool {
-	if o != nil && !IsNil(o.Associations) {
+// SetAssociations sets field value
+func (o *KeyItemDto) SetAssociations(v int32) {
+	o.Associations = v
+}
+
+// GetKeyReferenceUuid returns the KeyReferenceUuid field value if set, zero value otherwise.
+func (o *KeyItemDto) GetKeyReferenceUuid() string {
+	if o == nil || IsNil(o.KeyReferenceUuid) {
+		var ret string
+		return ret
+	}
+	return *o.KeyReferenceUuid
+}
+
+// GetKeyReferenceUuidOk returns a tuple with the KeyReferenceUuid field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *KeyItemDto) GetKeyReferenceUuidOk() (*string, bool) {
+	if o == nil || IsNil(o.KeyReferenceUuid) {
+		return nil, false
+	}
+	return o.KeyReferenceUuid, true
+}
+
+// HasKeyReferenceUuid returns a boolean if a field has been set.
+func (o *KeyItemDto) HasKeyReferenceUuid() bool {
+	if o != nil && !IsNil(o.KeyReferenceUuid) {
 		return true
 	}
 
 	return false
 }
 
-// SetAssociations gets a reference to the given int32 and assigns it to the Associations field.
-func (o *KeyItemDto) SetAssociations(v int32) {
-	o.Associations = &v
-}
-
-// GetKeyReferenceUuid returns the KeyReferenceUuid field value
-func (o *KeyItemDto) GetKeyReferenceUuid() string {
-	if o == nil {
-		var ret string
-		return ret
-	}
-
-	return o.KeyReferenceUuid
-}
-
-// GetKeyReferenceUuidOk returns a tuple with the KeyReferenceUuid field value
-// and a boolean to check if the value has been set.
-func (o *KeyItemDto) GetKeyReferenceUuidOk() (*string, bool) {
-	if o == nil {
-		return nil, false
-	}
-	return &o.KeyReferenceUuid, true
-}
-
-// SetKeyReferenceUuid sets field value
+// SetKeyReferenceUuid gets a reference to the given string and assigns it to the KeyReferenceUuid field.
 func (o *KeyItemDto) SetKeyReferenceUuid(v string) {
-	o.KeyReferenceUuid = v
+	o.KeyReferenceUuid = &v
 }
 
 // GetType returns the Type field value
@@ -527,90 +553,82 @@ func (o *KeyItemDto) SetKeyAlgorithm(v KeyAlgorithm) {
 	o.KeyAlgorithm = v
 }
 
-// GetFormat returns the Format field value if set, zero value otherwise.
+// GetFormat returns the Format field value
 func (o *KeyItemDto) GetFormat() KeyFormat {
-	if o == nil || IsNil(o.Format) {
+	if o == nil {
 		var ret KeyFormat
 		return ret
 	}
-	return *o.Format
+
+	return o.Format
 }
 
-// GetFormatOk returns a tuple with the Format field value if set, nil otherwise
+// GetFormatOk returns a tuple with the Format field value
 // and a boolean to check if the value has been set.
 func (o *KeyItemDto) GetFormatOk() (*KeyFormat, bool) {
-	if o == nil || IsNil(o.Format) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Format, true
+	return &o.Format, true
 }
 
-// HasFormat returns a boolean if a field has been set.
-func (o *KeyItemDto) HasFormat() bool {
-	if o != nil && !IsNil(o.Format) {
-		return true
-	}
-
-	return false
-}
-
-// SetFormat gets a reference to the given KeyFormat and assigns it to the Format field.
+// SetFormat sets field value
 func (o *KeyItemDto) SetFormat(v KeyFormat) {
-	o.Format = &v
+	o.Format = v
 }
 
-// GetLength returns the Length field value if set, zero value otherwise.
+// GetLength returns the Length field value
 func (o *KeyItemDto) GetLength() int32 {
-	if o == nil || IsNil(o.Length) {
+	if o == nil {
 		var ret int32
 		return ret
 	}
-	return *o.Length
+
+	return o.Length
 }
 
-// GetLengthOk returns a tuple with the Length field value if set, nil otherwise
+// GetLengthOk returns a tuple with the Length field value
 // and a boolean to check if the value has been set.
 func (o *KeyItemDto) GetLengthOk() (*int32, bool) {
-	if o == nil || IsNil(o.Length) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Length, true
+	return &o.Length, true
 }
 
-// HasLength returns a boolean if a field has been set.
-func (o *KeyItemDto) HasLength() bool {
-	if o != nil && !IsNil(o.Length) {
-		return true
-	}
-
-	return false
-}
-
-// SetLength gets a reference to the given int32 and assigns it to the Length field.
+// SetLength sets field value
 func (o *KeyItemDto) SetLength(v int32) {
-	o.Length = &v
+	o.Length = v
 }
 
-// GetUsage returns the Usage field value
+// GetUsage returns the Usage field value if set, zero value otherwise.
 func (o *KeyItemDto) GetUsage() []KeyUsage {
-	if o == nil {
+	if o == nil || IsNil(o.Usage) {
 		var ret []KeyUsage
 		return ret
 	}
-
 	return o.Usage
 }
 
-// GetUsageOk returns a tuple with the Usage field value
+// GetUsageOk returns a tuple with the Usage field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *KeyItemDto) GetUsageOk() ([]KeyUsage, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.Usage) {
 		return nil, false
 	}
 	return o.Usage, true
 }
 
-// SetUsage sets field value
+// HasUsage returns a boolean if a field has been set.
+func (o *KeyItemDto) HasUsage() bool {
+	if o != nil && !IsNil(o.Usage) {
+		return true
+	}
+
+	return false
+}
+
+// SetUsage gets a reference to the given []KeyUsage and assigns it to the Usage field.
 func (o *KeyItemDto) SetUsage(v []KeyUsage) {
 	o.Usage = v
 }
@@ -675,7 +693,9 @@ func (o KeyItemDto) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["uuid"] = o.Uuid
 	toSerialize["name"] = o.Name
-	toSerialize["description"] = o.Description
+	if !IsNil(o.Description) {
+		toSerialize["description"] = o.Description
+	}
 	toSerialize["creationTime"] = o.CreationTime
 	toSerialize["keyWrapperUuid"] = o.KeyWrapperUuid
 	if !IsNil(o.TokenProfileUuid) {
@@ -684,8 +704,12 @@ func (o KeyItemDto) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.TokenProfileName) {
 		toSerialize["tokenProfileName"] = o.TokenProfileName
 	}
-	toSerialize["tokenInstanceUuid"] = o.TokenInstanceUuid
-	toSerialize["tokenInstanceName"] = o.TokenInstanceName
+	if !IsNil(o.TokenInstanceUuid) {
+		toSerialize["tokenInstanceUuid"] = o.TokenInstanceUuid
+	}
+	if !IsNil(o.TokenInstanceName) {
+		toSerialize["tokenInstanceName"] = o.TokenInstanceName
+	}
 	if !IsNil(o.Owner) {
 		toSerialize["owner"] = o.Owner
 	}
@@ -695,19 +719,17 @@ func (o KeyItemDto) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.Groups) {
 		toSerialize["groups"] = o.Groups
 	}
-	if !IsNil(o.Associations) {
-		toSerialize["associations"] = o.Associations
+	toSerialize["associations"] = o.Associations
+	if !IsNil(o.KeyReferenceUuid) {
+		toSerialize["keyReferenceUuid"] = o.KeyReferenceUuid
 	}
-	toSerialize["keyReferenceUuid"] = o.KeyReferenceUuid
 	toSerialize["type"] = o.Type
 	toSerialize["keyAlgorithm"] = o.KeyAlgorithm
-	if !IsNil(o.Format) {
-		toSerialize["format"] = o.Format
+	toSerialize["format"] = o.Format
+	toSerialize["length"] = o.Length
+	if !IsNil(o.Usage) {
+		toSerialize["usage"] = o.Usage
 	}
-	if !IsNil(o.Length) {
-		toSerialize["length"] = o.Length
-	}
-	toSerialize["usage"] = o.Usage
 	toSerialize["enabled"] = o.Enabled
 	toSerialize["state"] = o.State
 
@@ -725,15 +747,13 @@ func (o *KeyItemDto) UnmarshalJSON(data []byte) (err error) {
 	requiredProperties := []string{
 		"uuid",
 		"name",
-		"description",
 		"creationTime",
 		"keyWrapperUuid",
-		"tokenInstanceUuid",
-		"tokenInstanceName",
-		"keyReferenceUuid",
+		"associations",
 		"type",
 		"keyAlgorithm",
-		"usage",
+		"format",
+		"length",
 		"enabled",
 		"state",
 	}

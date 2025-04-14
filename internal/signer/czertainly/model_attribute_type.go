@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -16,7 +16,7 @@ import (
 	"fmt"
 )
 
-// AttributeType Type of the attribute. It is optional and must be set only if special behaviour is needed.
+// AttributeType the model 'AttributeType'
 type AttributeType string
 
 // List of AttributeType

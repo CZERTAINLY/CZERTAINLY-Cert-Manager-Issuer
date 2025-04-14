@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -29,6 +29,15 @@ func (c contextKey) String() string {
 }
 
 var (
+	// ContextBasicAuth takes BasicAuth as authentication for the request.
+	ContextBasicAuth = contextKey("basic")
+
+	// ContextAccessToken takes a string oauth2 access token as authentication for the request.
+	ContextAccessToken = contextKey("accesstoken")
+
+	// ContextAPIKeys takes a string apikey as authentication for the request
+	ContextAPIKeys = contextKey("apiKeys")
+
 	// ContextServerIndex uses a server configuration from the index.
 	ContextServerIndex = contextKey("serverIndex")
 
@@ -91,8 +100,8 @@ func NewConfiguration() *Configuration {
 		Debug:            false,
 		Servers:          ServerConfigurations{
 			{
-				URL: "http://localhost:35047",
-				Description: "Generated server url",
+				URL: "https://demo.czertainly.online/api",
+				Description: "CZERTAINLY Demo server",
 			},
 		},
 		OperationServers: map[string]ServerConfigurations{

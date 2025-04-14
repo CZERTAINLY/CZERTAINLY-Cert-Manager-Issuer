@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -19,10 +19,11 @@ import (
 // checks if the SecretAttributeContent type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &SecretAttributeContent{}
 
-// SecretAttributeContent struct for SecretAttributeContent
+// SecretAttributeContent Secret attribute content carrying secrets with defined protection level
 type SecretAttributeContent struct {
 	// Content Reference
 	Reference *string `json:"reference,omitempty"`
+	// Secret attribute content data
 	Data SecretAttributeContentData `json:"data"`
 	AdditionalProperties map[string]interface{}
 }

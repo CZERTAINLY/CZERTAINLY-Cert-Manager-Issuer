@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -18,7 +18,7 @@ import (
 // checks if the RangeAttributeConstraintData type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &RangeAttributeConstraintData{}
 
-// RangeAttributeConstraintData Integer Range Attribute Constraint Data
+// RangeAttributeConstraintData struct for RangeAttributeConstraintData
 type RangeAttributeConstraintData struct {
 	// Start of the range for validation
 	From *int32 `json:"from,omitempty"`

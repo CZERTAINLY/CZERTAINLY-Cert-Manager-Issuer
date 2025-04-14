@@ -79,7 +79,7 @@ lint-fix: golangci-lint ## Run golangci-lint linter and perform fixes
 ##@ E2E testing
 
 K8S_CLUSTER_NAME := czertainly-issuer-e2e
-CERT_MANAGER_VERSION ?= 1.11.1
+CERT_MANAGER_VERSION ?= 1.17.1
 
 .PHONY: kind-cluster
 kind-cluster: ## Use Kind to create a Kubernetes cluster for E2E tests
@@ -208,11 +208,11 @@ GOLANGCI_LINT = $(LOCALBIN)/golangci-lint-$(GOLANGCI_LINT_VERSION)
 KIND ?= $(LOCALBIN)/kind
 
 ## Tool Versions
-KUSTOMIZE_VERSION ?= v5.3.0
-CONTROLLER_TOOLS_VERSION ?= v0.14.0
-ENVTEST_VERSION ?= release-0.17
-GOLANGCI_LINT_VERSION ?= v1.54.2
-KIND_VERSION := 0.18.0
+KUSTOMIZE_VERSION ?= v5.6.0
+CONTROLLER_TOOLS_VERSION ?= v0.17.1
+ENVTEST_VERSION ?= $(shell go list -m -f "{{ .Version }}" sigs.k8s.io/controller-runtime | awk -F'[v.]' '{printf "release-%d.%d", $$2, $$3}')
+GOLANGCI_LINT_VERSION ?= v1.63.4
+KIND_VERSION := 0.27.0
 
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
@@ -255,7 +255,7 @@ endef
 
 ##@ OpenAPI
 
-API_VERSION ?= 2.13.1
+API_VERSION ?= develop
 
 .PHONY: openapi-clean
 openapi-clean: ## Clear the OpenAPI generated files
@@ -263,7 +263,8 @@ openapi-clean: ## Clear the OpenAPI generated files
 
 .PHONY: openapi-generate
 openapi-generate: ## Generate the OpenAPI client
-	openapi-generator-cli generate \
+    # openapi-generator-cli generate \
+	openapi-generator generate \
       --input-spec https://raw.githubusercontent.com/CZERTAINLY/CZERTAINLY-Interface-Documentation/refs/heads/gh-pages/${API_VERSION}/doc-openapi-cert-manager.yaml \
       --config openapi-generator-config.yaml
-	patch -p0 < openapi-patch/openapi-${API_VERSION}.patch
+	patch -p0 < openapi-patch/openapi-2.14.3-SNAPSHOT.patch

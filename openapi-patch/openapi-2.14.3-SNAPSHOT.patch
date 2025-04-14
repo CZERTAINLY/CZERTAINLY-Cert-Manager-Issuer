@@ -1,0 +1,26 @@
++++ internal/signer/czertainly/model_base_attribute_content_dto.go
+@@ -352,22 +352,8 @@
+ 	}
+ 
+ 	if match > 1 { // more than 1 match
+-		// reset to nil
+-		dst.BooleanAttributeContent = nil
+-		dst.CodeBlockAttributeContent = nil
+-		dst.CredentialAttributeContent = nil
+-		dst.DateAttributeContent = nil
+-		dst.DateTimeAttributeContent = nil
+-		dst.FileAttributeContent = nil
+-		dst.FloatAttributeContent = nil
+-		dst.IntegerAttributeContent = nil
+-		dst.ObjectAttributeContent = nil
+-		dst.SecretAttributeContent = nil
+-		dst.StringAttributeContent = nil
+-		dst.TextAttributeContent = nil
+-		dst.TimeAttributeContent = nil
+-
+-		return fmt.Errorf("data matches more than one schema in oneOf(BaseAttributeContentDto)")
++		// let's continue and pick the correct one later
++		return nil
+ 	} else if match == 1 {
+ 		return nil // exactly one match
+ 	} else { // no match

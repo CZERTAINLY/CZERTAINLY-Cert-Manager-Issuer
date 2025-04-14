@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -16,7 +16,7 @@ import (
 	"fmt"
 )
 
-// KeyAlgorithm Key Algorithm
+// KeyAlgorithm the model 'KeyAlgorithm'
 type KeyAlgorithm string
 
 // List of KeyAlgorithm
@@ -26,6 +26,7 @@ const (
 	KEYALGORITHM_FALCON KeyAlgorithm = "FALCON"
 	KEYALGORITHM_CRYSTALS_DILITHIUM KeyAlgorithm = "CRYSTALS-Dilithium"
 	KEYALGORITHM_SPHINCS KeyAlgorithm = "SPHINCS+"
+	KEYALGORITHM_UNKNOWN KeyAlgorithm = "Unknown"
 )
 
 // All allowed values of KeyAlgorithm enum
@@ -35,6 +36,7 @@ var AllowedKeyAlgorithmEnumValues = []KeyAlgorithm{
 	"FALCON",
 	"CRYSTALS-Dilithium",
 	"SPHINCS+",
+	"Unknown",
 }
 
 func (v *KeyAlgorithm) UnmarshalJSON(src []byte) error {

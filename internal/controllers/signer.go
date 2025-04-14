@@ -31,7 +31,7 @@ var (
 )
 
 type HealthChecker interface {
-	Check() error
+	Check(context.Context) error
 }
 
 type HealthCheckerBuilder func(context.Context, *czertainlyissuerapi.IssuerSpec, corev1.Secret, map[string][]byte) (HealthChecker, error)
@@ -40,7 +40,7 @@ type Signer interface {
 	Sign(context.Context, signer.CertificateRequestObject) ([]byte, error)
 }
 
-type SignerBuilder func(context.Context, *czertainlyissuerapi.IssuerSpec, corev1.Secret, map[string][]byte, map[string]string) (Signer, error)
+type SignerBuilder func(context.Context, client.Client, *czertainlyissuerapi.IssuerSpec, corev1.Secret, map[string][]byte, map[string]string) (Signer, error)
 
 type Issuer struct {
 	HealthCheckerBuilder     HealthCheckerBuilder
@@ -137,7 +137,7 @@ func (o *Issuer) Check(ctx context.Context, issuerObject issuerapi.Issuer) error
 		return fmt.Errorf("%w: %v", errHealthCheckerBuilder, err)
 	}
 
-	if err := checker.Check(); err != nil {
+	if err := checker.Check(ctx); err != nil {
 		return fmt.Errorf("%w: %v", errHealthCheckerCheck, err)
 	}
 
@@ -180,7 +180,7 @@ func (o *Issuer) Sign(ctx context.Context, cr signer.CertificateRequestObject, i
 		return signer.PEMBundle{}, err
 	}
 
-	signerObj, err := o.SignerBuilder(ctx, issuerSpec, authSecret, caBundleSecretData, cr.GetAnnotations())
+	signerObj, err := o.SignerBuilder(ctx, o.client, issuerSpec, authSecret, caBundleSecretData, cr.GetAnnotations())
 	if err != nil {
 		return signer.PEMBundle{}, fmt.Errorf("%w: %v", errSignerBuilder, err)
 	}

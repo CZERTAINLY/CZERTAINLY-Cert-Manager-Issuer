@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -27,6 +27,7 @@ type ClientCertificateSignRequestDto struct {
 	SignatureAttributes []RequestAttributeDto `json:"signatureAttributes,omitempty"`
 	// Certificate signing request encoded as Base64 string
 	Request string `json:"request"`
+	// Certificate signing request format
 	Format *CertificateRequestFormat `json:"format,omitempty"`
 	// Token Profile UUID. Required if CSR is not uploaded
 	TokenProfileUuid *string `json:"tokenProfileUuid,omitempty"`
@@ -48,8 +49,6 @@ type _ClientCertificateSignRequestDto ClientCertificateSignRequestDto
 func NewClientCertificateSignRequestDto(request string, attributes []RequestAttributeDto) *ClientCertificateSignRequestDto {
 	this := ClientCertificateSignRequestDto{}
 	this.Request = request
-	var format CertificateRequestFormat = CERTIFICATEREQUESTFORMAT_PKCS10
-	this.Format = &format
 	this.Attributes = attributes
 	return &this
 }
@@ -59,8 +58,6 @@ func NewClientCertificateSignRequestDto(request string, attributes []RequestAttr
 // but it doesn't guarantee that properties required by API are set
 func NewClientCertificateSignRequestDtoWithDefaults() *ClientCertificateSignRequestDto {
 	this := ClientCertificateSignRequestDto{}
-	var format CertificateRequestFormat = CERTIFICATEREQUESTFORMAT_PKCS10
-	this.Format = &format
 	return &this
 }
 
