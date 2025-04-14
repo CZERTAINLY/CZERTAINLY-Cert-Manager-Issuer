@@ -32,135 +32,107 @@ type czertainlySigner struct {
 }
 
 func CzertainlyHealthCheckerFromIssuerAndSecretData(ctx context.Context, issuerSpec *czertainlyissuerapi.IssuerSpec, authSecret corev1.Secret, caBundleSecretData map[string][]byte) (controllers.HealthChecker, error) {
-	// l := log.FromContext(ctx)
-	czertainlySigner := czertainlySigner{}
+	cfg := czertainly.NewConfiguration()
+	cfg.Servers = czertainly.ServerConfigurations{{URL: issuerSpec.ApiUrl}}
 
-	czertainlyConfig := czertainly.NewConfiguration()
+	httpClient, err := createHttpClient(ctx, issuerSpec, authSecret, caBundleSecretData)
+	if err != nil {
+		return nil, err
+	}
+	cfg.HTTPClient = httpClient
 
-	czertainlyConfig.Servers = czertainly.ServerConfigurations{
-		{URL: issuerSpec.ApiUrl},
+	return &czertainlySigner{
+		httpClient: czertainly.NewAPIClient(cfg),
+	}, nil
+}
+
+func CzertainlySignerFromIssuerAndSecretData(ctx context.Context, k8sClient client.Client, issuerSpec *czertainlyissuerapi.IssuerSpec, authSecret corev1.Secret, caBundleSecretData map[string][]byte, annotations map[string]string) (controllers.Signer, error) {
+	if issuerSpec.RaProfileUuid == "" {
+		return nil, errors.New("RA profile UUID is not set")
 	}
 
-	client, err := createHttpClient(ctx, issuerSpec, authSecret, caBundleSecretData)
+	cfg := czertainly.NewConfiguration()
+	cfg.Servers = czertainly.ServerConfigurations{{URL: issuerSpec.ApiUrl}}
+
+	httpClient, err := createHttpClient(ctx, issuerSpec, authSecret, caBundleSecretData)
+	if err != nil {
+		return nil, err
+	}
+	cfg.HTTPClient = httpClient
+
+	return &czertainlySigner{
+		httpClient:    czertainly.NewAPIClient(cfg),
+		raProfileUuid: issuerSpec.RaProfileUuid,
+		k8sClient:     k8sClient,
+	}, nil
+}
+
+func createHttpClient(ctx context.Context, issuerSpec *czertainlyissuerapi.IssuerSpec, authSecret corev1.Secret, caBundleSecretData map[string][]byte) (*http.Client, error) {
+	tlsConfig, err := buildTLSConfig(caBundleSecretData["ca.crt"])
 	if err != nil {
 		return nil, err
 	}
 
-	czertainlyConfig.HTTPClient = client
-
-	czertainlySigner.httpClient = czertainly.NewAPIClient(czertainlyConfig)
-
-	return &czertainlySigner, nil
-}
-
-func createHttpClient(ctx context.Context, issuerSpec *czertainlyissuerapi.IssuerSpec, authSecret corev1.Secret, caBundleSecretData map[string][]byte) (*http.Client, error) {
-	tlsConfig := &tls.Config{}
-
-	if len(caBundleSecretData) > 0 {
-		caCertPool := x509.NewCertPool()
-		caCertPool.AppendCertsFromPEM(caBundleSecretData["ca.crt"])
-		tlsConfig.RootCAs = caCertPool
-	}
-
 	switch authSecret.Type {
 	case corev1.SecretTypeTLS:
-		// mTLS client
 		cert, err := tls.X509KeyPair(authSecret.Data["tls.crt"], authSecret.Data["tls.key"])
 		if err != nil {
 			return nil, err
 		}
 		tlsConfig.Certificates = []tls.Certificate{cert}
 
-		// Use the standard transport but inject our TLS configuration
-		client := &http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: tlsConfig,
-			},
-			Timeout: time.Second * 10,
-		}
-		return client, nil
+		return &http.Client{
+			Transport: &http.Transport{TLSClientConfig: tlsConfig},
+			Timeout:   10 * time.Second,
+		}, nil
 
 	case corev1.SecretTypeOpaque:
-		// OAuth2 client credentials
-		clientID := string(authSecret.Data["client_id"])
-		clientSecret := string(authSecret.Data["client_secret"])
-		tokenURL := string(authSecret.Data["token_url"])
-		scopes := strings.Split(string(authSecret.Data["scopes"]), " ")
-
-		clientCredentialsConfig := &clientcredentials.Config{
-			ClientID:     clientID,
-			ClientSecret: clientSecret,
-			TokenURL:     tokenURL,
-			Scopes:       scopes,
+		config := &clientcredentials.Config{
+			ClientID:     string(authSecret.Data["client_id"]),
+			ClientSecret: string(authSecret.Data["client_secret"]),
+			TokenURL:     string(authSecret.Data["token_url"]),
+			Scopes:       strings.Split(string(authSecret.Data["scopes"]), " "),
 		}
 
-		tokenSource := clientCredentialsConfig.TokenSource(ctx)
-
-		client := &http.Client{
+		return &http.Client{
 			Transport: &oauth2.Transport{
-				Base: &http.Transport{
-					TLSClientConfig: tlsConfig,
-				},
-				Source: tokenSource,
+				Base:   &http.Transport{TLSClientConfig: tlsConfig},
+				Source: config.TokenSource(ctx),
 			},
-			Timeout: time.Second * 10,
-		}
-		return client, nil
+			Timeout: 10 * time.Second,
+		}, nil
 
 	default:
-		// Unsupported secret type
 		return nil, errors.New("unknown authSecret type")
 	}
 }
 
-func CzertainlySignerFromIssuerAndSecretData(ctx context.Context, k8sClient client.Client, issuerSpec *czertainlyissuerapi.IssuerSpec, authSecret corev1.Secret, caBundleSecretData map[string][]byte, annotations map[string]string) (controllers.Signer, error) {
-	// l := log.FromContext(ctx)
-	czertainlySigner := czertainlySigner{}
-
-	czertainlyConfig := czertainly.NewConfiguration()
-
-	czertainlyConfig.Servers = czertainly.ServerConfigurations{
-		{URL: issuerSpec.ApiUrl},
+func buildTLSConfig(caData []byte) (*tls.Config, error) {
+	cfg := &tls.Config{}
+	if len(caData) > 0 {
+		pool := x509.NewCertPool()
+		if ok := pool.AppendCertsFromPEM(caData); !ok {
+			return nil, errors.New("failed to append CA certificates")
+		}
+		cfg.RootCAs = pool
 	}
-
-	client, err := createHttpClient(ctx, issuerSpec, authSecret, caBundleSecretData)
-	if err != nil {
-		return nil, err
-	}
-
-	czertainlyConfig.HTTPClient = client
-
-	czertainlySigner.httpClient = czertainly.NewAPIClient(czertainlyConfig)
-
-	if issuerSpec.RaProfileUuid == "" {
-		return nil, errors.New("RA profile uuid is not set")
-	}
-
-	czertainlySigner.raProfileUuid = issuerSpec.RaProfileUuid
-
-	czertainlySigner.k8sClient = k8sClient
-
-	return &czertainlySigner, nil
+	return cfg, nil
 }
 
 func (o *czertainlySigner) Check(ctx context.Context) error {
 	l := log.FromContext(ctx)
 
-	// get information about the server
-	coreInfoResponseDto, _, err := o.httpClient.InfoAPI.GetInfo(ctx).Execute()
+	info, _, err := o.httpClient.InfoAPI.GetInfo(ctx).Execute()
 	if err != nil {
 		return err
 	}
+	l.Info("Connected to server", "version", info.App.Version)
 
-	l.Info(fmt.Sprintf("Successfully connected to server version: %s", coreInfoResponseDto.App.Version))
-
-	// check if the server is running and we can connect to it
-	userDetailDto, _, err := o.httpClient.AuthenticationManagementAPI.Profile(ctx).Execute()
+	user, _, err := o.httpClient.AuthenticationManagementAPI.Profile(ctx).Execute()
 	if err != nil {
 		return err
 	}
-
-	l.Info(fmt.Sprintf("Authenticated with user details: username=%s", userDetailDto.Username))
+	l.Info("Authenticated user", "username", user.Username)
 
 	return nil
 }
@@ -223,7 +195,7 @@ func (o *czertainlySigner) Sign(ctx context.Context, cr signer.CertificateReques
 			Attributes: []czertainly.RequestAttributeDto{},
 		}
 
-		l.Info(fmt.Sprintf("Issuing certificate: authorityUuid=%s, raProfileUuid=%s", authorityUuid, o.raProfileUuid))
+		l.Info(fmt.Sprintf("Issuing certificate: authorityUuid=%s, raProfileUuid=%s", *authorityUuid, o.raProfileUuid))
 
 		clientCertificateDataResponseDto, _, err := o.httpClient.ClientOperationsV2API.IssueCertificate(ctx, *authorityUuid, o.raProfileUuid).ClientCertificateSignRequestDto(issueCertificateRequest).Execute()
 		if err != nil {
