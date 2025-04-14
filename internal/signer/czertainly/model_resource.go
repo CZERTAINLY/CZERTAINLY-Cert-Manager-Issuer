@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -16,7 +16,7 @@ import (
 	"fmt"
 )
 
-// Resource Source Object Type
+// Resource the model 'Resource'
 type Resource string
 
 // List of Resource
@@ -53,6 +53,24 @@ const (
 	RESOURCE_RULES Resource = "rules"
 	RESOURCE_ACTIONS Resource = "actions"
 	RESOURCE_TRIGGERS Resource = "triggers"
+	RESOURCE_RESOURCES Resource = "resources"
+	RESOURCE_RESOURCE_EVENTS Resource = "resourceEvents"
+	RESOURCE_SEARCH_FILTERS Resource = "searchFilters"
+	RESOURCE_KEY_ITEMS Resource = "keyItems"
+	RESOURCE_PLATFORM_ENUMS Resource = "platformEnums"
+	RESOURCE_NOTIFICATIONS Resource = "notifications"
+	RESOURCE_CONDITIONS Resource = "conditions"
+	RESOURCE_EXECUTIONS Resource = "executions"
+	RESOURCE_COMPLIANCE_RULES Resource = "complianceRules"
+	RESOURCE_COMPLIANCE_GROUPS Resource = "complianceGroups"
+	RESOURCE_CUSTOM_ATTRIBUTES Resource = "customAttributes"
+	RESOURCE_GLOBAL_METADATA Resource = "globalMetadata"
+	RESOURCE_ACME_ORDERS Resource = "acmeOrders"
+	RESOURCE_ACME_AUTHORIZATIONS Resource = "acmeAuthorizations"
+	RESOURCE_ACME_CHALLENGES Resource = "acmeChallenges"
+	RESOURCE_CMP_TRANSACTIONS Resource = "cmpTransactions"
+	RESOURCE_END_ENTITY_PROFILES Resource = "endEntityProfiles"
+	RESOURCE_AUTHENTICATION_PROVIDERS Resource = "authenticationProviders"
 )
 
 // All allowed values of Resource enum
@@ -89,6 +107,24 @@ var AllowedResourceEnumValues = []Resource{
 	"rules",
 	"actions",
 	"triggers",
+	"resources",
+	"resourceEvents",
+	"searchFilters",
+	"keyItems",
+	"platformEnums",
+	"notifications",
+	"conditions",
+	"executions",
+	"complianceRules",
+	"complianceGroups",
+	"customAttributes",
+	"globalMetadata",
+	"acmeOrders",
+	"acmeAuthorizations",
+	"acmeChallenges",
+	"cmpTransactions",
+	"endEntityProfiles",
+	"authenticationProviders",
 }
 
 func (v *Resource) UnmarshalJSON(src []byte) error {

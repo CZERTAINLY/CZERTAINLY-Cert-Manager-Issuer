@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -19,10 +19,11 @@ import (
 // checks if the CodeBlockAttributeContent type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &CodeBlockAttributeContent{}
 
-// CodeBlockAttributeContent struct for CodeBlockAttributeContent
+// CodeBlockAttributeContent Codeblock attribute content to store encoded snippets of programming language code
 type CodeBlockAttributeContent struct {
 	// Content Reference
 	Reference *string `json:"reference,omitempty"`
+	// CodeBlock attribute content data
 	Data CodeBlockAttributeContentData `json:"data"`
 	AdditionalProperties map[string]interface{}
 }

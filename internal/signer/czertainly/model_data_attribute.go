@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -21,19 +21,24 @@ var _ MappedNullable = &DataAttribute{}
 
 // DataAttribute Data attribute allows to store and transfer dynamic data. Its content can be edited and send in requests to store.
 type DataAttribute struct {
+	// Version of the Attribute
+	Version *int32 `json:"version,omitempty"`
 	// UUID of the Attribute for unique identification
 	Uuid string `json:"uuid"`
 	// Name of the Attribute that is used for identification
 	Name string `json:"name"`
 	// Optional description of the Attribute, should contain helper text on what is expected
 	Description *string `json:"description,omitempty"`
-	// Content of the Attribute
 	Content []BaseAttributeContentDto `json:"content,omitempty"`
+	// Type of the Attribute
 	Type AttributeType `json:"type"`
+	// Type of the Content
 	ContentType AttributeContentType `json:"contentType"`
+	// Properties of the Attributes
 	Properties DataAttributeProperties `json:"properties"`
-	// Optional regular expressions and constraints used for validating the Attribute content
-	Constraints []BaseAttributeConstraint `json:"constraints,omitempty"`
+	// Optional constraints used for validating the Attribute content
+	Constraints []BaseAttributeConstraintDto `json:"constraints,omitempty"`
+	// Optional definition of callback for getting the content of the Attribute based on the action
 	AttributeCallback *AttributeCallback `json:"attributeCallback,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
@@ -46,6 +51,8 @@ type _DataAttribute DataAttribute
 // will change when the set of required properties is changed
 func NewDataAttribute(uuid string, name string, type_ AttributeType, contentType AttributeContentType, properties DataAttributeProperties) *DataAttribute {
 	this := DataAttribute{}
+	var version int32 = 2
+	this.Version = &version
 	this.Uuid = uuid
 	this.Name = name
 	this.Type = type_
@@ -59,7 +66,41 @@ func NewDataAttribute(uuid string, name string, type_ AttributeType, contentType
 // but it doesn't guarantee that properties required by API are set
 func NewDataAttributeWithDefaults() *DataAttribute {
 	this := DataAttribute{}
+	var version int32 = 2
+	this.Version = &version
 	return &this
+}
+
+// GetVersion returns the Version field value if set, zero value otherwise.
+func (o *DataAttribute) GetVersion() int32 {
+	if o == nil || IsNil(o.Version) {
+		var ret int32
+		return ret
+	}
+	return *o.Version
+}
+
+// GetVersionOk returns a tuple with the Version field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *DataAttribute) GetVersionOk() (*int32, bool) {
+	if o == nil || IsNil(o.Version) {
+		return nil, false
+	}
+	return o.Version, true
+}
+
+// HasVersion returns a boolean if a field has been set.
+func (o *DataAttribute) HasVersion() bool {
+	if o != nil && !IsNil(o.Version) {
+		return true
+	}
+
+	return false
+}
+
+// SetVersion gets a reference to the given int32 and assigns it to the Version field.
+func (o *DataAttribute) SetVersion(v int32) {
+	o.Version = &v
 }
 
 // GetUuid returns the Uuid field value
@@ -247,9 +288,9 @@ func (o *DataAttribute) SetProperties(v DataAttributeProperties) {
 }
 
 // GetConstraints returns the Constraints field value if set, zero value otherwise.
-func (o *DataAttribute) GetConstraints() []BaseAttributeConstraint {
+func (o *DataAttribute) GetConstraints() []BaseAttributeConstraintDto {
 	if o == nil || IsNil(o.Constraints) {
-		var ret []BaseAttributeConstraint
+		var ret []BaseAttributeConstraintDto
 		return ret
 	}
 	return o.Constraints
@@ -257,7 +298,7 @@ func (o *DataAttribute) GetConstraints() []BaseAttributeConstraint {
 
 // GetConstraintsOk returns a tuple with the Constraints field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *DataAttribute) GetConstraintsOk() ([]BaseAttributeConstraint, bool) {
+func (o *DataAttribute) GetConstraintsOk() ([]BaseAttributeConstraintDto, bool) {
 	if o == nil || IsNil(o.Constraints) {
 		return nil, false
 	}
@@ -273,8 +314,8 @@ func (o *DataAttribute) HasConstraints() bool {
 	return false
 }
 
-// SetConstraints gets a reference to the given []BaseAttributeConstraint and assigns it to the Constraints field.
-func (o *DataAttribute) SetConstraints(v []BaseAttributeConstraint) {
+// SetConstraints gets a reference to the given []BaseAttributeConstraintDto and assigns it to the Constraints field.
+func (o *DataAttribute) SetConstraints(v []BaseAttributeConstraintDto) {
 	o.Constraints = v
 }
 
@@ -320,6 +361,9 @@ func (o DataAttribute) MarshalJSON() ([]byte, error) {
 
 func (o DataAttribute) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
+	if !IsNil(o.Version) {
+		toSerialize["version"] = o.Version
+	}
 	toSerialize["uuid"] = o.Uuid
 	toSerialize["name"] = o.Name
 	if !IsNil(o.Description) {
@@ -384,6 +428,7 @@ func (o *DataAttribute) UnmarshalJSON(data []byte) (err error) {
 	additionalProperties := make(map[string]interface{})
 
 	if err = json.Unmarshal(data, &additionalProperties); err == nil {
+		delete(additionalProperties, "version")
 		delete(additionalProperties, "uuid")
 		delete(additionalProperties, "name")
 		delete(additionalProperties, "description")

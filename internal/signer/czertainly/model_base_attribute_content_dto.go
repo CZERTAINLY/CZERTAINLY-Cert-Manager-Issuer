@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -14,6 +14,7 @@ package czertainly
 import (
 	"encoding/json"
 	"fmt"
+	"gopkg.in/validator.v2"
 )
 
 // BaseAttributeContentDto - Base Attribute content definition
@@ -136,7 +137,11 @@ func (dst *BaseAttributeContentDto) UnmarshalJSON(data []byte) error {
 		if string(jsonBooleanAttributeContent) == "{}" { // empty struct
 			dst.BooleanAttributeContent = nil
 		} else {
-			match++
+			if err = validator.Validate(dst.BooleanAttributeContent); err != nil {
+				dst.BooleanAttributeContent = nil
+			} else {
+				match++
+			}
 		}
 	} else {
 		dst.BooleanAttributeContent = nil
@@ -149,7 +154,11 @@ func (dst *BaseAttributeContentDto) UnmarshalJSON(data []byte) error {
 		if string(jsonCodeBlockAttributeContent) == "{}" { // empty struct
 			dst.CodeBlockAttributeContent = nil
 		} else {
-			match++
+			if err = validator.Validate(dst.CodeBlockAttributeContent); err != nil {
+				dst.CodeBlockAttributeContent = nil
+			} else {
+				match++
+			}
 		}
 	} else {
 		dst.CodeBlockAttributeContent = nil
@@ -162,7 +171,11 @@ func (dst *BaseAttributeContentDto) UnmarshalJSON(data []byte) error {
 		if string(jsonCredentialAttributeContent) == "{}" { // empty struct
 			dst.CredentialAttributeContent = nil
 		} else {
-			match++
+			if err = validator.Validate(dst.CredentialAttributeContent); err != nil {
+				dst.CredentialAttributeContent = nil
+			} else {
+				match++
+			}
 		}
 	} else {
 		dst.CredentialAttributeContent = nil
@@ -175,7 +188,11 @@ func (dst *BaseAttributeContentDto) UnmarshalJSON(data []byte) error {
 		if string(jsonDateAttributeContent) == "{}" { // empty struct
 			dst.DateAttributeContent = nil
 		} else {
-			match++
+			if err = validator.Validate(dst.DateAttributeContent); err != nil {
+				dst.DateAttributeContent = nil
+			} else {
+				match++
+			}
 		}
 	} else {
 		dst.DateAttributeContent = nil
@@ -188,7 +205,11 @@ func (dst *BaseAttributeContentDto) UnmarshalJSON(data []byte) error {
 		if string(jsonDateTimeAttributeContent) == "{}" { // empty struct
 			dst.DateTimeAttributeContent = nil
 		} else {
-			match++
+			if err = validator.Validate(dst.DateTimeAttributeContent); err != nil {
+				dst.DateTimeAttributeContent = nil
+			} else {
+				match++
+			}
 		}
 	} else {
 		dst.DateTimeAttributeContent = nil
@@ -201,7 +222,11 @@ func (dst *BaseAttributeContentDto) UnmarshalJSON(data []byte) error {
 		if string(jsonFileAttributeContent) == "{}" { // empty struct
 			dst.FileAttributeContent = nil
 		} else {
-			match++
+			if err = validator.Validate(dst.FileAttributeContent); err != nil {
+				dst.FileAttributeContent = nil
+			} else {
+				match++
+			}
 		}
 	} else {
 		dst.FileAttributeContent = nil
@@ -214,7 +239,11 @@ func (dst *BaseAttributeContentDto) UnmarshalJSON(data []byte) error {
 		if string(jsonFloatAttributeContent) == "{}" { // empty struct
 			dst.FloatAttributeContent = nil
 		} else {
-			match++
+			if err = validator.Validate(dst.FloatAttributeContent); err != nil {
+				dst.FloatAttributeContent = nil
+			} else {
+				match++
+			}
 		}
 	} else {
 		dst.FloatAttributeContent = nil
@@ -227,7 +256,11 @@ func (dst *BaseAttributeContentDto) UnmarshalJSON(data []byte) error {
 		if string(jsonIntegerAttributeContent) == "{}" { // empty struct
 			dst.IntegerAttributeContent = nil
 		} else {
-			match++
+			if err = validator.Validate(dst.IntegerAttributeContent); err != nil {
+				dst.IntegerAttributeContent = nil
+			} else {
+				match++
+			}
 		}
 	} else {
 		dst.IntegerAttributeContent = nil
@@ -240,7 +273,11 @@ func (dst *BaseAttributeContentDto) UnmarshalJSON(data []byte) error {
 		if string(jsonObjectAttributeContent) == "{}" { // empty struct
 			dst.ObjectAttributeContent = nil
 		} else {
-			match++
+			if err = validator.Validate(dst.ObjectAttributeContent); err != nil {
+				dst.ObjectAttributeContent = nil
+			} else {
+				match++
+			}
 		}
 	} else {
 		dst.ObjectAttributeContent = nil
@@ -253,7 +290,11 @@ func (dst *BaseAttributeContentDto) UnmarshalJSON(data []byte) error {
 		if string(jsonSecretAttributeContent) == "{}" { // empty struct
 			dst.SecretAttributeContent = nil
 		} else {
-			match++
+			if err = validator.Validate(dst.SecretAttributeContent); err != nil {
+				dst.SecretAttributeContent = nil
+			} else {
+				match++
+			}
 		}
 	} else {
 		dst.SecretAttributeContent = nil
@@ -266,7 +307,11 @@ func (dst *BaseAttributeContentDto) UnmarshalJSON(data []byte) error {
 		if string(jsonStringAttributeContent) == "{}" { // empty struct
 			dst.StringAttributeContent = nil
 		} else {
-			match++
+			if err = validator.Validate(dst.StringAttributeContent); err != nil {
+				dst.StringAttributeContent = nil
+			} else {
+				match++
+			}
 		}
 	} else {
 		dst.StringAttributeContent = nil
@@ -279,7 +324,11 @@ func (dst *BaseAttributeContentDto) UnmarshalJSON(data []byte) error {
 		if string(jsonTextAttributeContent) == "{}" { // empty struct
 			dst.TextAttributeContent = nil
 		} else {
-			match++
+			if err = validator.Validate(dst.TextAttributeContent); err != nil {
+				dst.TextAttributeContent = nil
+			} else {
+				match++
+			}
 		}
 	} else {
 		dst.TextAttributeContent = nil
@@ -292,7 +341,11 @@ func (dst *BaseAttributeContentDto) UnmarshalJSON(data []byte) error {
 		if string(jsonTimeAttributeContent) == "{}" { // empty struct
 			dst.TimeAttributeContent = nil
 		} else {
-			match++
+			if err = validator.Validate(dst.TimeAttributeContent); err != nil {
+				dst.TimeAttributeContent = nil
+			} else {
+				match++
+			}
 		}
 	} else {
 		dst.TimeAttributeContent = nil
@@ -420,6 +473,64 @@ func (obj *BaseAttributeContentDto) GetActualInstance() (interface{}) {
 
 	if obj.TimeAttributeContent != nil {
 		return obj.TimeAttributeContent
+	}
+
+	// all schemas are nil
+	return nil
+}
+
+// Get the actual instance value
+func (obj BaseAttributeContentDto) GetActualInstanceValue() (interface{}) {
+	if obj.BooleanAttributeContent != nil {
+		return *obj.BooleanAttributeContent
+	}
+
+	if obj.CodeBlockAttributeContent != nil {
+		return *obj.CodeBlockAttributeContent
+	}
+
+	if obj.CredentialAttributeContent != nil {
+		return *obj.CredentialAttributeContent
+	}
+
+	if obj.DateAttributeContent != nil {
+		return *obj.DateAttributeContent
+	}
+
+	if obj.DateTimeAttributeContent != nil {
+		return *obj.DateTimeAttributeContent
+	}
+
+	if obj.FileAttributeContent != nil {
+		return *obj.FileAttributeContent
+	}
+
+	if obj.FloatAttributeContent != nil {
+		return *obj.FloatAttributeContent
+	}
+
+	if obj.IntegerAttributeContent != nil {
+		return *obj.IntegerAttributeContent
+	}
+
+	if obj.ObjectAttributeContent != nil {
+		return *obj.ObjectAttributeContent
+	}
+
+	if obj.SecretAttributeContent != nil {
+		return *obj.SecretAttributeContent
+	}
+
+	if obj.StringAttributeContent != nil {
+		return *obj.StringAttributeContent
+	}
+
+	if obj.TextAttributeContent != nil {
+		return *obj.TextAttributeContent
+	}
+
+	if obj.TimeAttributeContent != nil {
+		return *obj.TimeAttributeContent
 	}
 
 	// all schemas are nil

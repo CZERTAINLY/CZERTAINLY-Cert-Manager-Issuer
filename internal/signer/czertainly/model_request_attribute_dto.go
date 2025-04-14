@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -25,6 +25,7 @@ type RequestAttributeDto struct {
 	Uuid string `json:"uuid"`
 	// Name of the Attribute
 	Name string `json:"name"`
+	// Content Type of the Attribute
 	ContentType AttributeContentType `json:"contentType"`
 	// Content of the Attribute
 	Content []BaseAttributeContentDto `json:"content"`

@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -19,7 +19,7 @@ import (
 // checks if the TimeAttributeContent type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &TimeAttributeContent{}
 
-// TimeAttributeContent struct for TimeAttributeContent
+// TimeAttributeContent Time attribute content in predefined format
 type TimeAttributeContent struct {
 	// Content Reference
 	Reference *string `json:"reference,omitempty"`

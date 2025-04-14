@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -19,7 +19,7 @@ import (
 // checks if the UserCertificateDto type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &UserCertificateDto{}
 
-// UserCertificateDto User Certificate details
+// UserCertificateDto struct for UserCertificateDto
 type UserCertificateDto struct {
 	// UUID of the certificate
 	Uuid string `json:"uuid"`

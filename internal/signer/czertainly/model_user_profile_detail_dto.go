@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -16,11 +16,11 @@ import (
 	"fmt"
 )
 
-// checks if the UserDetailDto type satisfies the MappedNullable interface at compile time
-var _ MappedNullable = &UserDetailDto{}
+// checks if the UserProfileDetailDto type satisfies the MappedNullable interface at compile time
+var _ MappedNullable = &UserProfileDetailDto{}
 
-// UserDetailDto struct for UserDetailDto
-type UserDetailDto struct {
+// UserProfileDetailDto struct for UserProfileDetailDto
+type UserProfileDetailDto struct {
 	// UUID of the User
 	Uuid string `json:"uuid"`
 	// Username of the user
@@ -39,41 +39,45 @@ type UserDetailDto struct {
 	Enabled bool `json:"enabled"`
 	// Is System user. True = Yes, False = No
 	SystemUser bool `json:"systemUser"`
+	// User Certificate details
 	Certificate *UserCertificateDto `json:"certificate,omitempty"`
 	// Roles for the user
 	Roles []RoleDto `json:"roles"`
 	// List of Custom Attributes
 	CustomAttributes []ResponseAttributeDto `json:"customAttributes,omitempty"`
+	// User permissions
+	Permissions UserProfilePermissionsDto `json:"permissions"`
 	AdditionalProperties map[string]interface{}
 }
 
-type _UserDetailDto UserDetailDto
+type _UserProfileDetailDto UserProfileDetailDto
 
-// NewUserDetailDto instantiates a new UserDetailDto object
+// NewUserProfileDetailDto instantiates a new UserProfileDetailDto object
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewUserDetailDto(uuid string, username string, groups []NameAndUuidDto, enabled bool, systemUser bool, roles []RoleDto) *UserDetailDto {
-	this := UserDetailDto{}
+func NewUserProfileDetailDto(uuid string, username string, groups []NameAndUuidDto, enabled bool, systemUser bool, roles []RoleDto, permissions UserProfilePermissionsDto) *UserProfileDetailDto {
+	this := UserProfileDetailDto{}
 	this.Uuid = uuid
 	this.Username = username
 	this.Groups = groups
 	this.Enabled = enabled
 	this.SystemUser = systemUser
 	this.Roles = roles
+	this.Permissions = permissions
 	return &this
 }
 
-// NewUserDetailDtoWithDefaults instantiates a new UserDetailDto object
+// NewUserProfileDetailDtoWithDefaults instantiates a new UserProfileDetailDto object
 // This constructor will only assign default values to properties that have it defined,
 // but it doesn't guarantee that properties required by API are set
-func NewUserDetailDtoWithDefaults() *UserDetailDto {
-	this := UserDetailDto{}
+func NewUserProfileDetailDtoWithDefaults() *UserProfileDetailDto {
+	this := UserProfileDetailDto{}
 	return &this
 }
 
 // GetUuid returns the Uuid field value
-func (o *UserDetailDto) GetUuid() string {
+func (o *UserProfileDetailDto) GetUuid() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -84,7 +88,7 @@ func (o *UserDetailDto) GetUuid() string {
 
 // GetUuidOk returns a tuple with the Uuid field value
 // and a boolean to check if the value has been set.
-func (o *UserDetailDto) GetUuidOk() (*string, bool) {
+func (o *UserProfileDetailDto) GetUuidOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -92,12 +96,12 @@ func (o *UserDetailDto) GetUuidOk() (*string, bool) {
 }
 
 // SetUuid sets field value
-func (o *UserDetailDto) SetUuid(v string) {
+func (o *UserProfileDetailDto) SetUuid(v string) {
 	o.Uuid = v
 }
 
 // GetUsername returns the Username field value
-func (o *UserDetailDto) GetUsername() string {
+func (o *UserProfileDetailDto) GetUsername() string {
 	if o == nil {
 		var ret string
 		return ret
@@ -108,7 +112,7 @@ func (o *UserDetailDto) GetUsername() string {
 
 // GetUsernameOk returns a tuple with the Username field value
 // and a boolean to check if the value has been set.
-func (o *UserDetailDto) GetUsernameOk() (*string, bool) {
+func (o *UserProfileDetailDto) GetUsernameOk() (*string, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -116,12 +120,12 @@ func (o *UserDetailDto) GetUsernameOk() (*string, bool) {
 }
 
 // SetUsername sets field value
-func (o *UserDetailDto) SetUsername(v string) {
+func (o *UserProfileDetailDto) SetUsername(v string) {
 	o.Username = v
 }
 
 // GetFirstName returns the FirstName field value if set, zero value otherwise.
-func (o *UserDetailDto) GetFirstName() string {
+func (o *UserProfileDetailDto) GetFirstName() string {
 	if o == nil || IsNil(o.FirstName) {
 		var ret string
 		return ret
@@ -131,7 +135,7 @@ func (o *UserDetailDto) GetFirstName() string {
 
 // GetFirstNameOk returns a tuple with the FirstName field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *UserDetailDto) GetFirstNameOk() (*string, bool) {
+func (o *UserProfileDetailDto) GetFirstNameOk() (*string, bool) {
 	if o == nil || IsNil(o.FirstName) {
 		return nil, false
 	}
@@ -139,7 +143,7 @@ func (o *UserDetailDto) GetFirstNameOk() (*string, bool) {
 }
 
 // HasFirstName returns a boolean if a field has been set.
-func (o *UserDetailDto) HasFirstName() bool {
+func (o *UserProfileDetailDto) HasFirstName() bool {
 	if o != nil && !IsNil(o.FirstName) {
 		return true
 	}
@@ -148,12 +152,12 @@ func (o *UserDetailDto) HasFirstName() bool {
 }
 
 // SetFirstName gets a reference to the given string and assigns it to the FirstName field.
-func (o *UserDetailDto) SetFirstName(v string) {
+func (o *UserProfileDetailDto) SetFirstName(v string) {
 	o.FirstName = &v
 }
 
 // GetLastName returns the LastName field value if set, zero value otherwise.
-func (o *UserDetailDto) GetLastName() string {
+func (o *UserProfileDetailDto) GetLastName() string {
 	if o == nil || IsNil(o.LastName) {
 		var ret string
 		return ret
@@ -163,7 +167,7 @@ func (o *UserDetailDto) GetLastName() string {
 
 // GetLastNameOk returns a tuple with the LastName field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *UserDetailDto) GetLastNameOk() (*string, bool) {
+func (o *UserProfileDetailDto) GetLastNameOk() (*string, bool) {
 	if o == nil || IsNil(o.LastName) {
 		return nil, false
 	}
@@ -171,7 +175,7 @@ func (o *UserDetailDto) GetLastNameOk() (*string, bool) {
 }
 
 // HasLastName returns a boolean if a field has been set.
-func (o *UserDetailDto) HasLastName() bool {
+func (o *UserProfileDetailDto) HasLastName() bool {
 	if o != nil && !IsNil(o.LastName) {
 		return true
 	}
@@ -180,12 +184,12 @@ func (o *UserDetailDto) HasLastName() bool {
 }
 
 // SetLastName gets a reference to the given string and assigns it to the LastName field.
-func (o *UserDetailDto) SetLastName(v string) {
+func (o *UserProfileDetailDto) SetLastName(v string) {
 	o.LastName = &v
 }
 
 // GetEmail returns the Email field value if set, zero value otherwise.
-func (o *UserDetailDto) GetEmail() string {
+func (o *UserProfileDetailDto) GetEmail() string {
 	if o == nil || IsNil(o.Email) {
 		var ret string
 		return ret
@@ -195,7 +199,7 @@ func (o *UserDetailDto) GetEmail() string {
 
 // GetEmailOk returns a tuple with the Email field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *UserDetailDto) GetEmailOk() (*string, bool) {
+func (o *UserProfileDetailDto) GetEmailOk() (*string, bool) {
 	if o == nil || IsNil(o.Email) {
 		return nil, false
 	}
@@ -203,7 +207,7 @@ func (o *UserDetailDto) GetEmailOk() (*string, bool) {
 }
 
 // HasEmail returns a boolean if a field has been set.
-func (o *UserDetailDto) HasEmail() bool {
+func (o *UserProfileDetailDto) HasEmail() bool {
 	if o != nil && !IsNil(o.Email) {
 		return true
 	}
@@ -212,12 +216,12 @@ func (o *UserDetailDto) HasEmail() bool {
 }
 
 // SetEmail gets a reference to the given string and assigns it to the Email field.
-func (o *UserDetailDto) SetEmail(v string) {
+func (o *UserProfileDetailDto) SetEmail(v string) {
 	o.Email = &v
 }
 
 // GetDescription returns the Description field value if set, zero value otherwise.
-func (o *UserDetailDto) GetDescription() string {
+func (o *UserProfileDetailDto) GetDescription() string {
 	if o == nil || IsNil(o.Description) {
 		var ret string
 		return ret
@@ -227,7 +231,7 @@ func (o *UserDetailDto) GetDescription() string {
 
 // GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *UserDetailDto) GetDescriptionOk() (*string, bool) {
+func (o *UserProfileDetailDto) GetDescriptionOk() (*string, bool) {
 	if o == nil || IsNil(o.Description) {
 		return nil, false
 	}
@@ -235,7 +239,7 @@ func (o *UserDetailDto) GetDescriptionOk() (*string, bool) {
 }
 
 // HasDescription returns a boolean if a field has been set.
-func (o *UserDetailDto) HasDescription() bool {
+func (o *UserProfileDetailDto) HasDescription() bool {
 	if o != nil && !IsNil(o.Description) {
 		return true
 	}
@@ -244,12 +248,12 @@ func (o *UserDetailDto) HasDescription() bool {
 }
 
 // SetDescription gets a reference to the given string and assigns it to the Description field.
-func (o *UserDetailDto) SetDescription(v string) {
+func (o *UserProfileDetailDto) SetDescription(v string) {
 	o.Description = &v
 }
 
 // GetGroups returns the Groups field value
-func (o *UserDetailDto) GetGroups() []NameAndUuidDto {
+func (o *UserProfileDetailDto) GetGroups() []NameAndUuidDto {
 	if o == nil {
 		var ret []NameAndUuidDto
 		return ret
@@ -260,7 +264,7 @@ func (o *UserDetailDto) GetGroups() []NameAndUuidDto {
 
 // GetGroupsOk returns a tuple with the Groups field value
 // and a boolean to check if the value has been set.
-func (o *UserDetailDto) GetGroupsOk() ([]NameAndUuidDto, bool) {
+func (o *UserProfileDetailDto) GetGroupsOk() ([]NameAndUuidDto, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -268,12 +272,12 @@ func (o *UserDetailDto) GetGroupsOk() ([]NameAndUuidDto, bool) {
 }
 
 // SetGroups sets field value
-func (o *UserDetailDto) SetGroups(v []NameAndUuidDto) {
+func (o *UserProfileDetailDto) SetGroups(v []NameAndUuidDto) {
 	o.Groups = v
 }
 
 // GetEnabled returns the Enabled field value
-func (o *UserDetailDto) GetEnabled() bool {
+func (o *UserProfileDetailDto) GetEnabled() bool {
 	if o == nil {
 		var ret bool
 		return ret
@@ -284,7 +288,7 @@ func (o *UserDetailDto) GetEnabled() bool {
 
 // GetEnabledOk returns a tuple with the Enabled field value
 // and a boolean to check if the value has been set.
-func (o *UserDetailDto) GetEnabledOk() (*bool, bool) {
+func (o *UserProfileDetailDto) GetEnabledOk() (*bool, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -292,12 +296,12 @@ func (o *UserDetailDto) GetEnabledOk() (*bool, bool) {
 }
 
 // SetEnabled sets field value
-func (o *UserDetailDto) SetEnabled(v bool) {
+func (o *UserProfileDetailDto) SetEnabled(v bool) {
 	o.Enabled = v
 }
 
 // GetSystemUser returns the SystemUser field value
-func (o *UserDetailDto) GetSystemUser() bool {
+func (o *UserProfileDetailDto) GetSystemUser() bool {
 	if o == nil {
 		var ret bool
 		return ret
@@ -308,7 +312,7 @@ func (o *UserDetailDto) GetSystemUser() bool {
 
 // GetSystemUserOk returns a tuple with the SystemUser field value
 // and a boolean to check if the value has been set.
-func (o *UserDetailDto) GetSystemUserOk() (*bool, bool) {
+func (o *UserProfileDetailDto) GetSystemUserOk() (*bool, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -316,12 +320,12 @@ func (o *UserDetailDto) GetSystemUserOk() (*bool, bool) {
 }
 
 // SetSystemUser sets field value
-func (o *UserDetailDto) SetSystemUser(v bool) {
+func (o *UserProfileDetailDto) SetSystemUser(v bool) {
 	o.SystemUser = v
 }
 
 // GetCertificate returns the Certificate field value if set, zero value otherwise.
-func (o *UserDetailDto) GetCertificate() UserCertificateDto {
+func (o *UserProfileDetailDto) GetCertificate() UserCertificateDto {
 	if o == nil || IsNil(o.Certificate) {
 		var ret UserCertificateDto
 		return ret
@@ -331,7 +335,7 @@ func (o *UserDetailDto) GetCertificate() UserCertificateDto {
 
 // GetCertificateOk returns a tuple with the Certificate field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *UserDetailDto) GetCertificateOk() (*UserCertificateDto, bool) {
+func (o *UserProfileDetailDto) GetCertificateOk() (*UserCertificateDto, bool) {
 	if o == nil || IsNil(o.Certificate) {
 		return nil, false
 	}
@@ -339,7 +343,7 @@ func (o *UserDetailDto) GetCertificateOk() (*UserCertificateDto, bool) {
 }
 
 // HasCertificate returns a boolean if a field has been set.
-func (o *UserDetailDto) HasCertificate() bool {
+func (o *UserProfileDetailDto) HasCertificate() bool {
 	if o != nil && !IsNil(o.Certificate) {
 		return true
 	}
@@ -348,12 +352,12 @@ func (o *UserDetailDto) HasCertificate() bool {
 }
 
 // SetCertificate gets a reference to the given UserCertificateDto and assigns it to the Certificate field.
-func (o *UserDetailDto) SetCertificate(v UserCertificateDto) {
+func (o *UserProfileDetailDto) SetCertificate(v UserCertificateDto) {
 	o.Certificate = &v
 }
 
 // GetRoles returns the Roles field value
-func (o *UserDetailDto) GetRoles() []RoleDto {
+func (o *UserProfileDetailDto) GetRoles() []RoleDto {
 	if o == nil {
 		var ret []RoleDto
 		return ret
@@ -364,7 +368,7 @@ func (o *UserDetailDto) GetRoles() []RoleDto {
 
 // GetRolesOk returns a tuple with the Roles field value
 // and a boolean to check if the value has been set.
-func (o *UserDetailDto) GetRolesOk() ([]RoleDto, bool) {
+func (o *UserProfileDetailDto) GetRolesOk() ([]RoleDto, bool) {
 	if o == nil {
 		return nil, false
 	}
@@ -372,12 +376,12 @@ func (o *UserDetailDto) GetRolesOk() ([]RoleDto, bool) {
 }
 
 // SetRoles sets field value
-func (o *UserDetailDto) SetRoles(v []RoleDto) {
+func (o *UserProfileDetailDto) SetRoles(v []RoleDto) {
 	o.Roles = v
 }
 
 // GetCustomAttributes returns the CustomAttributes field value if set, zero value otherwise.
-func (o *UserDetailDto) GetCustomAttributes() []ResponseAttributeDto {
+func (o *UserProfileDetailDto) GetCustomAttributes() []ResponseAttributeDto {
 	if o == nil || IsNil(o.CustomAttributes) {
 		var ret []ResponseAttributeDto
 		return ret
@@ -387,7 +391,7 @@ func (o *UserDetailDto) GetCustomAttributes() []ResponseAttributeDto {
 
 // GetCustomAttributesOk returns a tuple with the CustomAttributes field value if set, nil otherwise
 // and a boolean to check if the value has been set.
-func (o *UserDetailDto) GetCustomAttributesOk() ([]ResponseAttributeDto, bool) {
+func (o *UserProfileDetailDto) GetCustomAttributesOk() ([]ResponseAttributeDto, bool) {
 	if o == nil || IsNil(o.CustomAttributes) {
 		return nil, false
 	}
@@ -395,7 +399,7 @@ func (o *UserDetailDto) GetCustomAttributesOk() ([]ResponseAttributeDto, bool) {
 }
 
 // HasCustomAttributes returns a boolean if a field has been set.
-func (o *UserDetailDto) HasCustomAttributes() bool {
+func (o *UserProfileDetailDto) HasCustomAttributes() bool {
 	if o != nil && !IsNil(o.CustomAttributes) {
 		return true
 	}
@@ -404,11 +408,35 @@ func (o *UserDetailDto) HasCustomAttributes() bool {
 }
 
 // SetCustomAttributes gets a reference to the given []ResponseAttributeDto and assigns it to the CustomAttributes field.
-func (o *UserDetailDto) SetCustomAttributes(v []ResponseAttributeDto) {
+func (o *UserProfileDetailDto) SetCustomAttributes(v []ResponseAttributeDto) {
 	o.CustomAttributes = v
 }
 
-func (o UserDetailDto) MarshalJSON() ([]byte, error) {
+// GetPermissions returns the Permissions field value
+func (o *UserProfileDetailDto) GetPermissions() UserProfilePermissionsDto {
+	if o == nil {
+		var ret UserProfilePermissionsDto
+		return ret
+	}
+
+	return o.Permissions
+}
+
+// GetPermissionsOk returns a tuple with the Permissions field value
+// and a boolean to check if the value has been set.
+func (o *UserProfileDetailDto) GetPermissionsOk() (*UserProfilePermissionsDto, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.Permissions, true
+}
+
+// SetPermissions sets field value
+func (o *UserProfileDetailDto) SetPermissions(v UserProfilePermissionsDto) {
+	o.Permissions = v
+}
+
+func (o UserProfileDetailDto) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
@@ -416,7 +444,7 @@ func (o UserDetailDto) MarshalJSON() ([]byte, error) {
 	return json.Marshal(toSerialize)
 }
 
-func (o UserDetailDto) ToMap() (map[string]interface{}, error) {
+func (o UserProfileDetailDto) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["uuid"] = o.Uuid
 	toSerialize["username"] = o.Username
@@ -442,6 +470,7 @@ func (o UserDetailDto) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.CustomAttributes) {
 		toSerialize["customAttributes"] = o.CustomAttributes
 	}
+	toSerialize["permissions"] = o.Permissions
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -450,7 +479,7 @@ func (o UserDetailDto) ToMap() (map[string]interface{}, error) {
 	return toSerialize, nil
 }
 
-func (o *UserDetailDto) UnmarshalJSON(data []byte) (err error) {
+func (o *UserProfileDetailDto) UnmarshalJSON(data []byte) (err error) {
 	// This validates that all required properties are included in the JSON object
 	// by unmarshalling the object into a generic map with string keys and checking
 	// that every required field exists as a key in the generic map.
@@ -461,6 +490,7 @@ func (o *UserDetailDto) UnmarshalJSON(data []byte) (err error) {
 		"enabled",
 		"systemUser",
 		"roles",
+		"permissions",
 	}
 
 	allProperties := make(map[string]interface{})
@@ -477,15 +507,15 @@ func (o *UserDetailDto) UnmarshalJSON(data []byte) (err error) {
 		}
 	}
 
-	varUserDetailDto := _UserDetailDto{}
+	varUserProfileDetailDto := _UserProfileDetailDto{}
 
-	err = json.Unmarshal(data, &varUserDetailDto)
+	err = json.Unmarshal(data, &varUserProfileDetailDto)
 
 	if err != nil {
 		return err
 	}
 
-	*o = UserDetailDto(varUserDetailDto)
+	*o = UserProfileDetailDto(varUserProfileDetailDto)
 
 	additionalProperties := make(map[string]interface{})
 
@@ -502,44 +532,45 @@ func (o *UserDetailDto) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "certificate")
 		delete(additionalProperties, "roles")
 		delete(additionalProperties, "customAttributes")
+		delete(additionalProperties, "permissions")
 		o.AdditionalProperties = additionalProperties
 	}
 
 	return err
 }
 
-type NullableUserDetailDto struct {
-	value *UserDetailDto
+type NullableUserProfileDetailDto struct {
+	value *UserProfileDetailDto
 	isSet bool
 }
 
-func (v NullableUserDetailDto) Get() *UserDetailDto {
+func (v NullableUserProfileDetailDto) Get() *UserProfileDetailDto {
 	return v.value
 }
 
-func (v *NullableUserDetailDto) Set(val *UserDetailDto) {
+func (v *NullableUserProfileDetailDto) Set(val *UserProfileDetailDto) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableUserDetailDto) IsSet() bool {
+func (v NullableUserProfileDetailDto) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableUserDetailDto) Unset() {
+func (v *NullableUserProfileDetailDto) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableUserDetailDto(val *UserDetailDto) *NullableUserDetailDto {
-	return &NullableUserDetailDto{value: val, isSet: true}
+func NewNullableUserProfileDetailDto(val *UserProfileDetailDto) *NullableUserProfileDetailDto {
+	return &NullableUserProfileDetailDto{value: val, isSet: true}
 }
 
-func (v NullableUserDetailDto) MarshalJSON() ([]byte, error) {
+func (v NullableUserProfileDetailDto) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableUserDetailDto) UnmarshalJSON(src []byte) error {
+func (v *NullableUserProfileDetailDto) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

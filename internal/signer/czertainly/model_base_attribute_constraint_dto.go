@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -14,39 +14,40 @@ package czertainly
 import (
 	"encoding/json"
 	"fmt"
+	"gopkg.in/validator.v2"
 )
 
-// BaseAttributeConstraint - Optional regular expressions and constraints used for validating the Attribute content
-type BaseAttributeConstraint struct {
+// BaseAttributeConstraintDto - Base Attribute Constraint definition
+type BaseAttributeConstraintDto struct {
 	DateTimeAttributeConstraint *DateTimeAttributeConstraint
 	RangeAttributeConstraint *RangeAttributeConstraint
 	RegexpAttributeConstraint *RegexpAttributeConstraint
 }
 
-// DateTimeAttributeConstraintAsBaseAttributeConstraint is a convenience function that returns DateTimeAttributeConstraint wrapped in BaseAttributeConstraint
-func DateTimeAttributeConstraintAsBaseAttributeConstraint(v *DateTimeAttributeConstraint) BaseAttributeConstraint {
-	return BaseAttributeConstraint{
+// DateTimeAttributeConstraintAsBaseAttributeConstraintDto is a convenience function that returns DateTimeAttributeConstraint wrapped in BaseAttributeConstraintDto
+func DateTimeAttributeConstraintAsBaseAttributeConstraintDto(v *DateTimeAttributeConstraint) BaseAttributeConstraintDto {
+	return BaseAttributeConstraintDto{
 		DateTimeAttributeConstraint: v,
 	}
 }
 
-// RangeAttributeConstraintAsBaseAttributeConstraint is a convenience function that returns RangeAttributeConstraint wrapped in BaseAttributeConstraint
-func RangeAttributeConstraintAsBaseAttributeConstraint(v *RangeAttributeConstraint) BaseAttributeConstraint {
-	return BaseAttributeConstraint{
+// RangeAttributeConstraintAsBaseAttributeConstraintDto is a convenience function that returns RangeAttributeConstraint wrapped in BaseAttributeConstraintDto
+func RangeAttributeConstraintAsBaseAttributeConstraintDto(v *RangeAttributeConstraint) BaseAttributeConstraintDto {
+	return BaseAttributeConstraintDto{
 		RangeAttributeConstraint: v,
 	}
 }
 
-// RegexpAttributeConstraintAsBaseAttributeConstraint is a convenience function that returns RegexpAttributeConstraint wrapped in BaseAttributeConstraint
-func RegexpAttributeConstraintAsBaseAttributeConstraint(v *RegexpAttributeConstraint) BaseAttributeConstraint {
-	return BaseAttributeConstraint{
+// RegexpAttributeConstraintAsBaseAttributeConstraintDto is a convenience function that returns RegexpAttributeConstraint wrapped in BaseAttributeConstraintDto
+func RegexpAttributeConstraintAsBaseAttributeConstraintDto(v *RegexpAttributeConstraint) BaseAttributeConstraintDto {
+	return BaseAttributeConstraintDto{
 		RegexpAttributeConstraint: v,
 	}
 }
 
 
 // Unmarshal JSON data into one of the pointers in the struct
-func (dst *BaseAttributeConstraint) UnmarshalJSON(data []byte) error {
+func (dst *BaseAttributeConstraintDto) UnmarshalJSON(data []byte) error {
 	var err error
 	match := 0
 	// try to unmarshal data into DateTimeAttributeConstraint
@@ -56,7 +57,11 @@ func (dst *BaseAttributeConstraint) UnmarshalJSON(data []byte) error {
 		if string(jsonDateTimeAttributeConstraint) == "{}" { // empty struct
 			dst.DateTimeAttributeConstraint = nil
 		} else {
-			match++
+			if err = validator.Validate(dst.DateTimeAttributeConstraint); err != nil {
+				dst.DateTimeAttributeConstraint = nil
+			} else {
+				match++
+			}
 		}
 	} else {
 		dst.DateTimeAttributeConstraint = nil
@@ -69,7 +74,11 @@ func (dst *BaseAttributeConstraint) UnmarshalJSON(data []byte) error {
 		if string(jsonRangeAttributeConstraint) == "{}" { // empty struct
 			dst.RangeAttributeConstraint = nil
 		} else {
-			match++
+			if err = validator.Validate(dst.RangeAttributeConstraint); err != nil {
+				dst.RangeAttributeConstraint = nil
+			} else {
+				match++
+			}
 		}
 	} else {
 		dst.RangeAttributeConstraint = nil
@@ -82,7 +91,11 @@ func (dst *BaseAttributeConstraint) UnmarshalJSON(data []byte) error {
 		if string(jsonRegexpAttributeConstraint) == "{}" { // empty struct
 			dst.RegexpAttributeConstraint = nil
 		} else {
-			match++
+			if err = validator.Validate(dst.RegexpAttributeConstraint); err != nil {
+				dst.RegexpAttributeConstraint = nil
+			} else {
+				match++
+			}
 		}
 	} else {
 		dst.RegexpAttributeConstraint = nil
@@ -94,16 +107,16 @@ func (dst *BaseAttributeConstraint) UnmarshalJSON(data []byte) error {
 		dst.RangeAttributeConstraint = nil
 		dst.RegexpAttributeConstraint = nil
 
-		return fmt.Errorf("data matches more than one schema in oneOf(BaseAttributeConstraint)")
+		return fmt.Errorf("data matches more than one schema in oneOf(BaseAttributeConstraintDto)")
 	} else if match == 1 {
 		return nil // exactly one match
 	} else { // no match
-		return fmt.Errorf("data failed to match schemas in oneOf(BaseAttributeConstraint)")
+		return fmt.Errorf("data failed to match schemas in oneOf(BaseAttributeConstraintDto)")
 	}
 }
 
 // Marshal data from the first non-nil pointers in the struct to JSON
-func (src BaseAttributeConstraint) MarshalJSON() ([]byte, error) {
+func (src BaseAttributeConstraintDto) MarshalJSON() ([]byte, error) {
 	if src.DateTimeAttributeConstraint != nil {
 		return json.Marshal(&src.DateTimeAttributeConstraint)
 	}
@@ -120,7 +133,7 @@ func (src BaseAttributeConstraint) MarshalJSON() ([]byte, error) {
 }
 
 // Get the actual instance
-func (obj *BaseAttributeConstraint) GetActualInstance() (interface{}) {
+func (obj *BaseAttributeConstraintDto) GetActualInstance() (interface{}) {
 	if obj == nil {
 		return nil
 	}
@@ -140,38 +153,56 @@ func (obj *BaseAttributeConstraint) GetActualInstance() (interface{}) {
 	return nil
 }
 
-type NullableBaseAttributeConstraint struct {
-	value *BaseAttributeConstraint
+// Get the actual instance value
+func (obj BaseAttributeConstraintDto) GetActualInstanceValue() (interface{}) {
+	if obj.DateTimeAttributeConstraint != nil {
+		return *obj.DateTimeAttributeConstraint
+	}
+
+	if obj.RangeAttributeConstraint != nil {
+		return *obj.RangeAttributeConstraint
+	}
+
+	if obj.RegexpAttributeConstraint != nil {
+		return *obj.RegexpAttributeConstraint
+	}
+
+	// all schemas are nil
+	return nil
+}
+
+type NullableBaseAttributeConstraintDto struct {
+	value *BaseAttributeConstraintDto
 	isSet bool
 }
 
-func (v NullableBaseAttributeConstraint) Get() *BaseAttributeConstraint {
+func (v NullableBaseAttributeConstraintDto) Get() *BaseAttributeConstraintDto {
 	return v.value
 }
 
-func (v *NullableBaseAttributeConstraint) Set(val *BaseAttributeConstraint) {
+func (v *NullableBaseAttributeConstraintDto) Set(val *BaseAttributeConstraintDto) {
 	v.value = val
 	v.isSet = true
 }
 
-func (v NullableBaseAttributeConstraint) IsSet() bool {
+func (v NullableBaseAttributeConstraintDto) IsSet() bool {
 	return v.isSet
 }
 
-func (v *NullableBaseAttributeConstraint) Unset() {
+func (v *NullableBaseAttributeConstraintDto) Unset() {
 	v.value = nil
 	v.isSet = false
 }
 
-func NewNullableBaseAttributeConstraint(val *BaseAttributeConstraint) *NullableBaseAttributeConstraint {
-	return &NullableBaseAttributeConstraint{value: val, isSet: true}
+func NewNullableBaseAttributeConstraintDto(val *BaseAttributeConstraintDto) *NullableBaseAttributeConstraintDto {
+	return &NullableBaseAttributeConstraintDto{value: val, isSet: true}
 }
 
-func (v NullableBaseAttributeConstraint) MarshalJSON() ([]byte, error) {
+func (v NullableBaseAttributeConstraintDto) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.value)
 }
 
-func (v *NullableBaseAttributeConstraint) UnmarshalJSON(src []byte) error {
+func (v *NullableBaseAttributeConstraintDto) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }

@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.13.1
+API version: 2.14.2-SNAPSHOT
 Contact: info@czertainly.com
 */
 
@@ -20,14 +20,14 @@ import (
 // checks if the KeyDto type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &KeyDto{}
 
-// KeyDto Key Pair of the certificate
+// KeyDto struct for KeyDto
 type KeyDto struct {
 	// Object identifier
 	Uuid string `json:"uuid"`
 	// Object Name
 	Name string `json:"name"`
 	// Description of the Key
-	Description string `json:"description"`
+	Description *string `json:"description,omitempty"`
 	// Creation time of the Key. If the key is discovered from the connector, then it will be returned
 	CreationTime time.Time `json:"creationTime"`
 	// UUID of the Token Profile
@@ -35,9 +35,9 @@ type KeyDto struct {
 	// Name of the Token Profile
 	TokenProfileName *string `json:"tokenProfileName,omitempty"`
 	// Token Instance UUID
-	TokenInstanceUuid string `json:"tokenInstanceUuid"`
+	TokenInstanceUuid *string `json:"tokenInstanceUuid,omitempty"`
 	// Token Instance Name
-	TokenInstanceName string `json:"tokenInstanceName"`
+	TokenInstanceName *string `json:"tokenInstanceName,omitempty"`
 	// Owner of the Key
 	Owner *string `json:"owner,omitempty"`
 	// UUID of the owner of the Key
@@ -47,7 +47,7 @@ type KeyDto struct {
 	// Key Items
 	Items []KeyItemDto `json:"items"`
 	// Number of associated objects
-	Associations *int32 `json:"associations,omitempty"`
+	Associations int32 `json:"associations"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -57,15 +57,13 @@ type _KeyDto KeyDto
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewKeyDto(uuid string, name string, description string, creationTime time.Time, tokenInstanceUuid string, tokenInstanceName string, items []KeyItemDto) *KeyDto {
+func NewKeyDto(uuid string, name string, creationTime time.Time, items []KeyItemDto, associations int32) *KeyDto {
 	this := KeyDto{}
 	this.Uuid = uuid
 	this.Name = name
-	this.Description = description
 	this.CreationTime = creationTime
-	this.TokenInstanceUuid = tokenInstanceUuid
-	this.TokenInstanceName = tokenInstanceName
 	this.Items = items
+	this.Associations = associations
 	return &this
 }
 
@@ -125,28 +123,36 @@ func (o *KeyDto) SetName(v string) {
 	o.Name = v
 }
 
-// GetDescription returns the Description field value
+// GetDescription returns the Description field value if set, zero value otherwise.
 func (o *KeyDto) GetDescription() string {
-	if o == nil {
+	if o == nil || IsNil(o.Description) {
 		var ret string
 		return ret
 	}
-
-	return o.Description
+	return *o.Description
 }
 
-// GetDescriptionOk returns a tuple with the Description field value
+// GetDescriptionOk returns a tuple with the Description field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *KeyDto) GetDescriptionOk() (*string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.Description) {
 		return nil, false
 	}
-	return &o.Description, true
+	return o.Description, true
 }
 
-// SetDescription sets field value
+// HasDescription returns a boolean if a field has been set.
+func (o *KeyDto) HasDescription() bool {
+	if o != nil && !IsNil(o.Description) {
+		return true
+	}
+
+	return false
+}
+
+// SetDescription gets a reference to the given string and assigns it to the Description field.
 func (o *KeyDto) SetDescription(v string) {
-	o.Description = v
+	o.Description = &v
 }
 
 // GetCreationTime returns the CreationTime field value
@@ -237,52 +243,68 @@ func (o *KeyDto) SetTokenProfileName(v string) {
 	o.TokenProfileName = &v
 }
 
-// GetTokenInstanceUuid returns the TokenInstanceUuid field value
+// GetTokenInstanceUuid returns the TokenInstanceUuid field value if set, zero value otherwise.
 func (o *KeyDto) GetTokenInstanceUuid() string {
-	if o == nil {
+	if o == nil || IsNil(o.TokenInstanceUuid) {
 		var ret string
 		return ret
 	}
-
-	return o.TokenInstanceUuid
+	return *o.TokenInstanceUuid
 }
 
-// GetTokenInstanceUuidOk returns a tuple with the TokenInstanceUuid field value
+// GetTokenInstanceUuidOk returns a tuple with the TokenInstanceUuid field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *KeyDto) GetTokenInstanceUuidOk() (*string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.TokenInstanceUuid) {
 		return nil, false
 	}
-	return &o.TokenInstanceUuid, true
+	return o.TokenInstanceUuid, true
 }
 
-// SetTokenInstanceUuid sets field value
+// HasTokenInstanceUuid returns a boolean if a field has been set.
+func (o *KeyDto) HasTokenInstanceUuid() bool {
+	if o != nil && !IsNil(o.TokenInstanceUuid) {
+		return true
+	}
+
+	return false
+}
+
+// SetTokenInstanceUuid gets a reference to the given string and assigns it to the TokenInstanceUuid field.
 func (o *KeyDto) SetTokenInstanceUuid(v string) {
-	o.TokenInstanceUuid = v
+	o.TokenInstanceUuid = &v
 }
 
-// GetTokenInstanceName returns the TokenInstanceName field value
+// GetTokenInstanceName returns the TokenInstanceName field value if set, zero value otherwise.
 func (o *KeyDto) GetTokenInstanceName() string {
-	if o == nil {
+	if o == nil || IsNil(o.TokenInstanceName) {
 		var ret string
 		return ret
 	}
-
-	return o.TokenInstanceName
+	return *o.TokenInstanceName
 }
 
-// GetTokenInstanceNameOk returns a tuple with the TokenInstanceName field value
+// GetTokenInstanceNameOk returns a tuple with the TokenInstanceName field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *KeyDto) GetTokenInstanceNameOk() (*string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.TokenInstanceName) {
 		return nil, false
 	}
-	return &o.TokenInstanceName, true
+	return o.TokenInstanceName, true
 }
 
-// SetTokenInstanceName sets field value
+// HasTokenInstanceName returns a boolean if a field has been set.
+func (o *KeyDto) HasTokenInstanceName() bool {
+	if o != nil && !IsNil(o.TokenInstanceName) {
+		return true
+	}
+
+	return false
+}
+
+// SetTokenInstanceName gets a reference to the given string and assigns it to the TokenInstanceName field.
 func (o *KeyDto) SetTokenInstanceName(v string) {
-	o.TokenInstanceName = v
+	o.TokenInstanceName = &v
 }
 
 // GetOwner returns the Owner field value if set, zero value otherwise.
@@ -405,36 +427,28 @@ func (o *KeyDto) SetItems(v []KeyItemDto) {
 	o.Items = v
 }
 
-// GetAssociations returns the Associations field value if set, zero value otherwise.
+// GetAssociations returns the Associations field value
 func (o *KeyDto) GetAssociations() int32 {
-	if o == nil || IsNil(o.Associations) {
+	if o == nil {
 		var ret int32
 		return ret
 	}
-	return *o.Associations
+
+	return o.Associations
 }
 
-// GetAssociationsOk returns a tuple with the Associations field value if set, nil otherwise
+// GetAssociationsOk returns a tuple with the Associations field value
 // and a boolean to check if the value has been set.
 func (o *KeyDto) GetAssociationsOk() (*int32, bool) {
-	if o == nil || IsNil(o.Associations) {
+	if o == nil {
 		return nil, false
 	}
-	return o.Associations, true
+	return &o.Associations, true
 }
 
-// HasAssociations returns a boolean if a field has been set.
-func (o *KeyDto) HasAssociations() bool {
-	if o != nil && !IsNil(o.Associations) {
-		return true
-	}
-
-	return false
-}
-
-// SetAssociations gets a reference to the given int32 and assigns it to the Associations field.
+// SetAssociations sets field value
 func (o *KeyDto) SetAssociations(v int32) {
-	o.Associations = &v
+	o.Associations = v
 }
 
 func (o KeyDto) MarshalJSON() ([]byte, error) {
@@ -449,7 +463,9 @@ func (o KeyDto) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["uuid"] = o.Uuid
 	toSerialize["name"] = o.Name
-	toSerialize["description"] = o.Description
+	if !IsNil(o.Description) {
+		toSerialize["description"] = o.Description
+	}
 	toSerialize["creationTime"] = o.CreationTime
 	if !IsNil(o.TokenProfileUuid) {
 		toSerialize["tokenProfileUuid"] = o.TokenProfileUuid
@@ -457,8 +473,12 @@ func (o KeyDto) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.TokenProfileName) {
 		toSerialize["tokenProfileName"] = o.TokenProfileName
 	}
-	toSerialize["tokenInstanceUuid"] = o.TokenInstanceUuid
-	toSerialize["tokenInstanceName"] = o.TokenInstanceName
+	if !IsNil(o.TokenInstanceUuid) {
+		toSerialize["tokenInstanceUuid"] = o.TokenInstanceUuid
+	}
+	if !IsNil(o.TokenInstanceName) {
+		toSerialize["tokenInstanceName"] = o.TokenInstanceName
+	}
 	if !IsNil(o.Owner) {
 		toSerialize["owner"] = o.Owner
 	}
@@ -469,9 +489,7 @@ func (o KeyDto) ToMap() (map[string]interface{}, error) {
 		toSerialize["groups"] = o.Groups
 	}
 	toSerialize["items"] = o.Items
-	if !IsNil(o.Associations) {
-		toSerialize["associations"] = o.Associations
-	}
+	toSerialize["associations"] = o.Associations
 
 	for key, value := range o.AdditionalProperties {
 		toSerialize[key] = value
@@ -487,11 +505,9 @@ func (o *KeyDto) UnmarshalJSON(data []byte) (err error) {
 	requiredProperties := []string{
 		"uuid",
 		"name",
-		"description",
 		"creationTime",
-		"tokenInstanceUuid",
-		"tokenInstanceName",
 		"items",
+		"associations",
 	}
 
 	allProperties := make(map[string]interface{})
