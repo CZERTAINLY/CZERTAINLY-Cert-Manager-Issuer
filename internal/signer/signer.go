@@ -204,10 +204,12 @@ func (o *czertainlySigner) Sign(ctx context.Context, cr signer.CertificateReques
 
 		uuid = clientCertificateDataResponseDto.Uuid
 
-		if err := patchCertificateRequestWithUUID(ctx, cr, o.k8sClient, uuid); err != nil {
-			l.Error(err, "Failed to annotate certificate request with UUID")
-			return nil, err
-		}
+		// changing the certificate request annotation will trigger the controller to update the certificate
+		// which is undesired state, keeping commented for now
+		//if err := patchCertificateRequestWithUUID(ctx, cr, o.k8sClient, uuid); err != nil {
+		//	l.Error(err, "Failed to annotate certificate request with UUID")
+		//	return nil, err
+		//}
 	}
 
 	l.Info(fmt.Sprintf("Waiting for certificate request to be processed: uuid=%s", uuid))
