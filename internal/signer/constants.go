@@ -1,6 +1,10 @@
 package signer
 
+import "time"
+
 const (
 	czertainlyAnnotationPrefix = "czertainly-issuer.czertainly.com/"
 	certificateUuidAnnotation  = czertainlyAnnotationPrefix + "certificate-uuid"
+
+	waitForNextRequeueTime = 30 * time.Second
 )
