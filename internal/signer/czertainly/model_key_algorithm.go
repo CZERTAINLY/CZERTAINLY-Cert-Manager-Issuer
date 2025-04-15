@@ -24,6 +24,9 @@ const (
 	KEYALGORITHM_RSA KeyAlgorithm = "RSA"
 	KEYALGORITHM_ECDSA KeyAlgorithm = "ECDSA"
 	KEYALGORITHM_FALCON KeyAlgorithm = "FALCON"
+	KEYALGORITHM_ML_DSA KeyAlgorithm = "ML-DSA"
+	KEYALGORITHM_SLH_DSA KeyAlgorithm = "SLH-DSA"
+	KEYALGORITHM_ML_KEM KeyAlgorithm = "ML-KEM"
 	KEYALGORITHM_CRYSTALS_DILITHIUM KeyAlgorithm = "CRYSTALS-Dilithium"
 	KEYALGORITHM_SPHINCS KeyAlgorithm = "SPHINCS+"
 	KEYALGORITHM_UNKNOWN KeyAlgorithm = "Unknown"
@@ -34,6 +37,9 @@ var AllowedKeyAlgorithmEnumValues = []KeyAlgorithm{
 	"RSA",
 	"ECDSA",
 	"FALCON",
+	"ML-DSA",
+	"SLH-DSA",
+	"ML-KEM",
 	"CRYSTALS-Dilithium",
 	"SPHINCS+",
 	"Unknown",

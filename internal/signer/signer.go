@@ -137,22 +137,9 @@ func (o *czertainlySigner) Check(ctx context.Context) error {
 	return nil
 }
 
-type RaProfileDetailResponse struct {
-	AuthorityInstanceUuid string `json:"authorityInstanceUuid"`
-}
-
-type IssueCertRequest struct {
-	Pkcs10     string   `json:"pkcs10"`
-	Attributes []string `json:"attributes"`
-}
-
-type IssueCertResponse struct {
-	Uuid string `json:"uuid"`
-}
-
-type CertDetailsResponse struct {
-	State              string `json:"state"`
-	CertificateContent string `json:"certificateContent"`
+func csrString(csr []byte) *string {
+	s := string(csr)
+	return &s
 }
 
 func (o *czertainlySigner) Sign(ctx context.Context, cr signer.CertificateRequestObject) ([]byte, error) {
@@ -190,19 +177,8 @@ func (o *czertainlySigner) Sign(ctx context.Context, cr signer.CertificateReques
 
 	// request for new certificate only if czertainly-issuer.czertainly.com/certificate-uuid is not set
 	if uuid == "" {
-		issueCertificateRequest := czertainly.ClientCertificateSignRequestDto{
-			Request:    string(csrBytes),
-			Attributes: []czertainly.RequestAttributeDto{},
-		}
-
 		l.Info(fmt.Sprintf("Issuing certificate: authorityUuid=%s, raProfileUuid=%s", *authorityUuid, o.raProfileUuid))
-
-		clientCertificateDataResponseDto, _, err := o.httpClient.ClientOperationsV2API.IssueCertificate(ctx, *authorityUuid, o.raProfileUuid).ClientCertificateSignRequestDto(issueCertificateRequest).Execute()
-		if err != nil {
-			return nil, err
-		}
-
-		uuid = clientCertificateDataResponseDto.Uuid
+		uuid, err = o.issueCertificate(ctx, csrBytes, *authorityUuid)
 
 		// changing the certificate request annotation will trigger the controller to update the certificate
 		// which is undesired state, keeping commented for now
@@ -210,6 +186,38 @@ func (o *czertainlySigner) Sign(ctx context.Context, cr signer.CertificateReques
 		//	l.Error(err, "Failed to annotate certificate request with UUID")
 		//	return nil, err
 		//}
+	} else {
+		// we need to check if we should renew or rekey
+		// renew if the associated secret of the certificates contains tls.crt and spec.privateKey.rotationPolicy!=Always
+		// rekey if the associated secret of the certificates contains tls.crt and spec.privateKey.rotationPolicy=Always
+		containsCrt, err := secretContainsCertificate(ctx, cr, o.k8sClient)
+		if err != nil {
+			return nil, err
+		}
+
+		keyRotated, err := privateKeyRotated(ctx, cr, o.k8sClient)
+		if err != nil {
+			return nil, err
+		}
+
+		if !containsCrt {
+			// something went wrong when the uuid was set and the certificate was not issued
+			l.Error(errors.New("certificate request is not issued"), "Certificate request is not issued")
+			return nil, errors.New("certificate request is not issued")
+		} else if !keyRotated {
+			// we should renew the certificate
+			l.Info(fmt.Sprintf("Renewing certificate: uuid=%s", uuid))
+			uuid, err = o.renewCertificate(ctx, csrBytes, *authorityUuid, uuid)
+		} else {
+			// we should rekey the certificate
+			// TODO: is it enough to assume that the certificate should be rekeyed if the rotation policy is set to Always?
+			l.Info(fmt.Sprintf("Rekeying certificate: uuid=%s", uuid))
+			uuid, err = o.rekeyCertificate(ctx, csrBytes, *authorityUuid, uuid)
+		}
+	}
+
+	if err != nil {
+		return nil, err
 	}
 
 	l.Info(fmt.Sprintf("Waiting for certificate request to be processed: uuid=%s", uuid))
@@ -249,6 +257,47 @@ func (o *czertainlySigner) Sign(ctx context.Context, cr signer.CertificateReques
 	}), nil
 }
 
+func (o *czertainlySigner) issueCertificate(ctx context.Context, csrBytes []byte, authorityUuid string) (string, error) {
+	request := czertainly.ClientCertificateSignRequestDto{
+		Request:    string(csrBytes),
+		Attributes: []czertainly.RequestAttributeDto{},
+	}
+
+	resp, _, err := o.httpClient.ClientOperationsV2API.IssueCertificate(ctx, authorityUuid, o.raProfileUuid).
+		ClientCertificateSignRequestDto(request).Execute()
+	if err != nil {
+		return "", err
+	}
+
+	return resp.Uuid, nil
+}
+
+func (o *czertainlySigner) renewCertificate(ctx context.Context, csrBytes []byte, authorityUuid string, certificateUuid string) (string, error) {
+	renewCertificateRequest := czertainly.ClientCertificateRenewRequestDto{
+		Request: csrString(csrBytes),
+	}
+
+	resp, _, err := o.httpClient.ClientOperationsV2API.RenewCertificate(ctx, authorityUuid, o.raProfileUuid, certificateUuid).ClientCertificateRenewRequestDto(renewCertificateRequest).Execute()
+	if err != nil {
+		return "", err
+	}
+
+	return resp.Uuid, nil
+}
+
+func (o *czertainlySigner) rekeyCertificate(ctx context.Context, csrBytes []byte, authorityUuid string, certificateUuid string) (string, error) {
+	rekeyCertificateRequest := czertainly.ClientCertificateRekeyRequestDto{
+		Request: csrString(csrBytes),
+	}
+
+	resp, _, err := o.httpClient.ClientOperationsV2API.RekeyCertificate(ctx, authorityUuid, o.raProfileUuid, certificateUuid).ClientCertificateRekeyRequestDto(rekeyCertificateRequest).Execute()
+	if err != nil {
+		return "", err
+	}
+
+	return resp.Uuid, nil
+}
+
 func (o *czertainlySigner) getCertificate(ctx context.Context, uuid string) (czertainly.CertificateState, string, error) {
 	certificateDetailDto, _, err := o.httpClient.CertificateInventoryAPI.GetCertificate(ctx, uuid).Execute()
 	if err != nil {
@@ -267,88 +316,113 @@ func (o *czertainlySigner) getCertificate(ctx context.Context, uuid string) (cze
 
 func (o *czertainlySigner) pollForCertificate(ctx context.Context, uuid string) (string, error) {
 	l := log.FromContext(ctx)
-	state := czertainly.CERTIFICATESTATE_REQUESTED
+
 	for {
-		s, c, err := o.getCertificate(ctx, uuid)
+		state, cert, err := o.getCertificate(ctx, uuid)
 		if err != nil {
 			return "", err
 		}
-		state = s
-		if state == czertainly.CERTIFICATESTATE_ISSUED {
-			l.Info(fmt.Sprintf("Certificate request processed sucessfully: uuid=%s", uuid))
-			return c, nil
-		} else if state == czertainly.CERTIFICATESTATE_FAILED {
-			// get the reason for the failure
-			certificateEventHistoryDto, _, err := o.httpClient.CertificateInventoryAPI.GetCertificateEventHistory(ctx, uuid).Execute()
-			if err != nil {
-				return "", err
-			}
 
-			// get the first failed "Issue Certificate" event that has status "FAILED"
-			// it should be the last registered event that is failed from the history perspective
-			for _, event := range certificateEventHistoryDto {
-				if event.Event == "Issue Certificate" && event.Status == "FAILED" {
-					l.Info(fmt.Sprintf("Certificate request failed: uuid=%s, reason=%s", uuid, event.Message))
-					return "", errors.New("certificate request failed with the message: " + event.Message)
-				}
-			}
+		switch state {
+		case czertainly.CERTIFICATESTATE_ISSUED:
+			l.Info(fmt.Sprintf("Certificate request processed successfully: uuid=%s", uuid))
+			return cert, nil
 
-			l.Info(fmt.Sprintf("Certificate request failed with unkown reason: uuid=%s", uuid))
-			return "", errors.New("certificate request failed with unknown reason")
-		} else if state == czertainly.CERTIFICATESTATE_REJECTED {
-			// get approvals for the certificate request
-			approvalResponseDto, _, err := o.httpClient.CertificateInventoryAPI.ListCertificateApprovals(ctx, uuid).Execute()
-			if err != nil {
-				return "", err
-			}
+		case czertainly.CERTIFICATESTATE_FAILED:
+			return o.handleFailedState(ctx, uuid)
 
-			// get the first approval that has status "EXPIRED" or "REJECTED" with resource "certificates" and action "issue"
-			for _, approval := range approvalResponseDto.Approvals {
-				if approval.Resource == "certificates" && approval.ResourceAction == "issue" {
-					if approval.Status == "EXPIRED" {
-						l.Info(fmt.Sprintf("Certificate request rejected as expired: uuid=%s", uuid))
-						return "", errors.New("certificate request rejected as expired")
-					} else if approval.Status == "REJECTED" {
-						// get the reason for the rejection from the approval detail
-						approvalDetailDto, _, err := o.httpClient.ApprovalInventoryAPI.GetApproval(ctx, approval.ApprovalUuid).Execute()
-						if err != nil {
-							return "", err
-						}
+		case czertainly.CERTIFICATESTATE_REJECTED:
+			return o.handleRejectedState(ctx, uuid)
 
-						// get the first rejected approval reason
-						for _, approval := range approvalDetailDto.ApprovalSteps {
-							for _, recipient := range approval.ApprovalStepRecipients {
-								if recipient.Status == "REJECTED" {
-									if recipient.Comment != nil {
-										l.Info(fmt.Sprintf("Certificate request rejected: uuid=%s, reason=%s", uuid, *recipient.Comment))
-										return "", errors.New("certificate request rejected with the message: " + *recipient.Comment)
-									} else {
-										l.Info(fmt.Sprintf("Certificate request rejected without reson: uuid=%s", uuid))
-										return "", errors.New("certificate request rejected without reason")
-									}
-								}
-							}
-						}
-
-						l.Info(fmt.Sprintf("Certificate request rejected with unknown reason: uuid=%s", uuid))
-						return "", errors.New("certificate request rejected with unknown reason")
-					}
-				}
-			}
-
-			l.Info(fmt.Sprintf("Certificate request rejected: uuid=%s", uuid))
-			return "", errors.New("certificate request rejected")
-		} else if state == czertainly.CERTIFICATESTATE_PENDING_APPROVAL {
+		case czertainly.CERTIFICATESTATE_PENDING_APPROVAL:
 			l.Info(fmt.Sprintf("Certificate request is pending approval: uuid=%s", uuid))
-			// wait for 30 second and check again
 			time.Sleep(waitForNextRequeueTime)
-		} else if state == czertainly.CERTIFICATESTATE_PENDING_ISSUE || state == czertainly.CERTIFICATESTATE_REQUESTED {
+
+		case czertainly.CERTIFICATESTATE_PENDING_ISSUE, czertainly.CERTIFICATESTATE_REQUESTED:
 			l.Info(fmt.Sprintf("Certificate request is pending issue: uuid=%s", uuid))
-			// wait for 30 second and check again
 			time.Sleep(waitForNextRequeueTime)
-		} else {
+
+		default:
 			l.Info(fmt.Sprintf("Certificate request is in unknown state: uuid=%s, state=%s", uuid, state))
 			return "", errors.New("certificate request is in unknown state")
 		}
+	}
+}
+
+func (o *czertainlySigner) handleFailedState(ctx context.Context, uuid string) (string, error) {
+	l := log.FromContext(ctx)
+	history, _, err := o.httpClient.CertificateInventoryAPI.GetCertificateEventHistory(ctx, uuid).Execute()
+	if err != nil {
+		return "", err
+	}
+
+	for _, event := range history {
+		if event.Event == "Issue Certificate" && event.Status == "FAILED" {
+			l.Info(fmt.Sprintf("Certificate request failed: uuid=%s, reason=%s", uuid, event.Message))
+			return "", signer.PermanentError{
+				Err: fmt.Errorf("certificate request failed: uuid=%s, reason=%s", uuid, event.Message),
+			}
+		}
+	}
+
+	l.Info(fmt.Sprintf("Certificate request failed with unknown reason: uuid=%s", uuid))
+	return "", errors.New("certificate request failed with unknown reason")
+}
+
+func (o *czertainlySigner) handleRejectedState(ctx context.Context, uuid string) (string, error) {
+	l := log.FromContext(ctx)
+	approvals, _, err := o.httpClient.CertificateInventoryAPI.ListCertificateApprovals(ctx, uuid).Execute()
+	if err != nil {
+		return "", err
+	}
+
+	for _, approval := range approvals.Approvals {
+		if approval.Resource == "certificates" && approval.ResourceAction == "issue" {
+			switch approval.Status {
+			case "EXPIRED":
+				l.Info(fmt.Sprintf("Certificate request rejected as expired: uuid=%s", uuid))
+				return "", signer.PermanentError{
+					Err: fmt.Errorf("certificate request rejected as expired: uuid=%s", uuid),
+				}
+
+			case "REJECTED":
+				return o.getRejectionReason(ctx, approval.ApprovalUuid, uuid)
+			}
+		}
+	}
+
+	l.Info(fmt.Sprintf("Certificate request rejected: uuid=%s", uuid))
+	return "", signer.PermanentError{
+		Err: fmt.Errorf("certificate request rejected: uuid=%s", uuid),
+	}
+}
+
+func (o *czertainlySigner) getRejectionReason(ctx context.Context, approvalUUID, certUUID string) (string, error) {
+	l := log.FromContext(ctx)
+	details, _, err := o.httpClient.ApprovalInventoryAPI.GetApproval(ctx, approvalUUID).Execute()
+	if err != nil {
+		return "", err
+	}
+
+	for _, step := range details.ApprovalSteps {
+		for _, recipient := range step.ApprovalStepRecipients {
+			if recipient.Status == "REJECTED" {
+				if recipient.Comment != nil {
+					l.Info(fmt.Sprintf("Certificate request rejected: uuid=%s, reason=%s", certUUID, *recipient.Comment))
+					return "", signer.PermanentError{
+						Err: fmt.Errorf("certificate request rejected: uuid=%s, reason=%s", certUUID, *recipient.Comment),
+					}
+				}
+				l.Info(fmt.Sprintf("Certificate request rejected without reason: uuid=%s", certUUID))
+				return "", signer.PermanentError{
+					Err: fmt.Errorf("certificate request rejected without reason: uuid=%s", certUUID),
+				}
+			}
+		}
+	}
+
+	l.Info(fmt.Sprintf("Certificate request rejected with unknown reason: uuid=%s", certUUID))
+	return "", signer.PermanentError{
+		Err: fmt.Errorf("certificate request rejected with unknown reason: uuid=%s", certUUID),
 	}
 }
