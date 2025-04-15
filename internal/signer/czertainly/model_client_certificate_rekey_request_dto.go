@@ -13,7 +13,6 @@ package czertainly
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 // checks if the ClientCertificateRekeyRequestDto type satisfies the MappedNullable interface at compile time
@@ -28,9 +27,9 @@ type ClientCertificateRekeyRequestDto struct {
 	// Certificate signing request format
 	Format *CertificateRequestFormat `json:"format,omitempty"`
 	// Key UUID
-	KeyUuid string `json:"keyUuid"`
+	KeyUuid *string `json:"keyUuid,omitempty"`
 	// Token Profile UUID
-	TokenProfileUuid string `json:"tokenProfileUuid"`
+	TokenProfileUuid *string `json:"tokenProfileUuid,omitempty"`
 	// Signature Attributes. If not provided, existing attributes will be used to generate the new CSR
 	SignatureAttributes []RequestAttributeDto `json:"signatureAttributes,omitempty"`
 	AdditionalProperties map[string]interface{}
@@ -42,12 +41,10 @@ type _ClientCertificateRekeyRequestDto ClientCertificateRekeyRequestDto
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewClientCertificateRekeyRequestDto(keyUuid string, tokenProfileUuid string) *ClientCertificateRekeyRequestDto {
+func NewClientCertificateRekeyRequestDto() *ClientCertificateRekeyRequestDto {
 	this := ClientCertificateRekeyRequestDto{}
 	var replaceInLocations bool = false
 	this.ReplaceInLocations = &replaceInLocations
-	this.KeyUuid = keyUuid
-	this.TokenProfileUuid = tokenProfileUuid
 	return &this
 }
 
@@ -157,52 +154,68 @@ func (o *ClientCertificateRekeyRequestDto) SetFormat(v CertificateRequestFormat)
 	o.Format = &v
 }
 
-// GetKeyUuid returns the KeyUuid field value
+// GetKeyUuid returns the KeyUuid field value if set, zero value otherwise.
 func (o *ClientCertificateRekeyRequestDto) GetKeyUuid() string {
-	if o == nil {
+	if o == nil || IsNil(o.KeyUuid) {
 		var ret string
 		return ret
 	}
-
-	return o.KeyUuid
+	return *o.KeyUuid
 }
 
-// GetKeyUuidOk returns a tuple with the KeyUuid field value
+// GetKeyUuidOk returns a tuple with the KeyUuid field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *ClientCertificateRekeyRequestDto) GetKeyUuidOk() (*string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.KeyUuid) {
 		return nil, false
 	}
-	return &o.KeyUuid, true
+	return o.KeyUuid, true
 }
 
-// SetKeyUuid sets field value
+// HasKeyUuid returns a boolean if a field has been set.
+func (o *ClientCertificateRekeyRequestDto) HasKeyUuid() bool {
+	if o != nil && !IsNil(o.KeyUuid) {
+		return true
+	}
+
+	return false
+}
+
+// SetKeyUuid gets a reference to the given string and assigns it to the KeyUuid field.
 func (o *ClientCertificateRekeyRequestDto) SetKeyUuid(v string) {
-	o.KeyUuid = v
+	o.KeyUuid = &v
 }
 
-// GetTokenProfileUuid returns the TokenProfileUuid field value
+// GetTokenProfileUuid returns the TokenProfileUuid field value if set, zero value otherwise.
 func (o *ClientCertificateRekeyRequestDto) GetTokenProfileUuid() string {
-	if o == nil {
+	if o == nil || IsNil(o.TokenProfileUuid) {
 		var ret string
 		return ret
 	}
-
-	return o.TokenProfileUuid
+	return *o.TokenProfileUuid
 }
 
-// GetTokenProfileUuidOk returns a tuple with the TokenProfileUuid field value
+// GetTokenProfileUuidOk returns a tuple with the TokenProfileUuid field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *ClientCertificateRekeyRequestDto) GetTokenProfileUuidOk() (*string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.TokenProfileUuid) {
 		return nil, false
 	}
-	return &o.TokenProfileUuid, true
+	return o.TokenProfileUuid, true
 }
 
-// SetTokenProfileUuid sets field value
+// HasTokenProfileUuid returns a boolean if a field has been set.
+func (o *ClientCertificateRekeyRequestDto) HasTokenProfileUuid() bool {
+	if o != nil && !IsNil(o.TokenProfileUuid) {
+		return true
+	}
+
+	return false
+}
+
+// SetTokenProfileUuid gets a reference to the given string and assigns it to the TokenProfileUuid field.
 func (o *ClientCertificateRekeyRequestDto) SetTokenProfileUuid(v string) {
-	o.TokenProfileUuid = v
+	o.TokenProfileUuid = &v
 }
 
 // GetSignatureAttributes returns the SignatureAttributes field value if set, zero value otherwise.
@@ -256,8 +269,12 @@ func (o ClientCertificateRekeyRequestDto) ToMap() (map[string]interface{}, error
 	if !IsNil(o.Format) {
 		toSerialize["format"] = o.Format
 	}
-	toSerialize["keyUuid"] = o.KeyUuid
-	toSerialize["tokenProfileUuid"] = o.TokenProfileUuid
+	if !IsNil(o.KeyUuid) {
+		toSerialize["keyUuid"] = o.KeyUuid
+	}
+	if !IsNil(o.TokenProfileUuid) {
+		toSerialize["tokenProfileUuid"] = o.TokenProfileUuid
+	}
 	if !IsNil(o.SignatureAttributes) {
 		toSerialize["signatureAttributes"] = o.SignatureAttributes
 	}
@@ -270,28 +287,6 @@ func (o ClientCertificateRekeyRequestDto) ToMap() (map[string]interface{}, error
 }
 
 func (o *ClientCertificateRekeyRequestDto) UnmarshalJSON(data []byte) (err error) {
-	// This validates that all required properties are included in the JSON object
-	// by unmarshalling the object into a generic map with string keys and checking
-	// that every required field exists as a key in the generic map.
-	requiredProperties := []string{
-		"keyUuid",
-		"tokenProfileUuid",
-	}
-
-	allProperties := make(map[string]interface{})
-
-	err = json.Unmarshal(data, &allProperties)
-
-	if err != nil {
-		return err;
-	}
-
-	for _, requiredProperty := range(requiredProperties) {
-		if _, exists := allProperties[requiredProperty]; !exists {
-			return fmt.Errorf("no value given for required property %v", requiredProperty)
-		}
-	}
-
 	varClientCertificateRekeyRequestDto := _ClientCertificateRekeyRequestDto{}
 
 	err = json.Unmarshal(data, &varClientCertificateRekeyRequestDto)

@@ -187,7 +187,8 @@ func (o *Issuer) Sign(ctx context.Context, cr signer.CertificateRequestObject, i
 
 	signed, err := signerObj.Sign(ctx, cr)
 	if err != nil {
-		return signer.PEMBundle{}, fmt.Errorf("%w: %v", errSignerSign, err)
+		// return signer.PEMBundle{}, fmt.Errorf("%w: %v", errSignerSign, err)
+		return signer.PEMBundle{}, err
 	}
 
 	bundle, err := pki.ParseSingleCertificateChainPEM(signed)

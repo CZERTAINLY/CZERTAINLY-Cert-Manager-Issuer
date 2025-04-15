@@ -263,7 +263,6 @@ openapi-clean: ## Clear the OpenAPI generated files
 
 .PHONY: openapi-generate
 openapi-generate: ## Generate the OpenAPI client
-    # openapi-generator-cli generate \
 	openapi-generator generate \
       --input-spec https://raw.githubusercontent.com/CZERTAINLY/CZERTAINLY-Interface-Documentation/refs/heads/gh-pages/${API_VERSION}/doc-openapi-cert-manager.yaml \
       --config openapi-generator-config.yaml
