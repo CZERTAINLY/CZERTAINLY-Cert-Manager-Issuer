@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.14.2-SNAPSHOT
+API version: 2.15.0
 Contact: info@czertainly.com
 */
 

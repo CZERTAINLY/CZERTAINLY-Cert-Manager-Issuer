@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.14.2-SNAPSHOT
+API version: 2.15.0
 Contact: info@czertainly.com
 */
 
@@ -22,6 +22,7 @@ type Resource string
 // List of Resource
 const (
 	RESOURCE_NONE Resource = "NONE"
+	RESOURCE_ANY Resource = "ANY"
 	RESOURCE_DASHBOARD Resource = "dashboard"
 	RESOURCE_SETTINGS Resource = "settings"
 	RESOURCE_AUDIT_LOGS Resource = "auditLogs"
@@ -29,7 +30,6 @@ const (
 	RESOURCE_CONNECTORS Resource = "connectors"
 	RESOURCE_ATTRIBUTES Resource = "attributes"
 	RESOURCE_JOBS Resource = "jobs"
-	RESOURCE_NOTIFICATION_INSTANCES Resource = "notificationInstances"
 	RESOURCE_USERS Resource = "users"
 	RESOURCE_ROLES Resource = "roles"
 	RESOURCE_ACME_ACCOUNTS Resource = "acmeAccounts"
@@ -50,6 +50,8 @@ const (
 	RESOURCE_KEYS Resource = "keys"
 	RESOURCE_APPROVAL_PROFILES Resource = "approvalProfiles"
 	RESOURCE_APPROVALS Resource = "approvals"
+	RESOURCE_NOTIFICATION_PROFILES Resource = "notificationProfiles"
+	RESOURCE_NOTIFICATION_INSTANCES Resource = "notificationInstances"
 	RESOURCE_RULES Resource = "rules"
 	RESOURCE_ACTIONS Resource = "actions"
 	RESOURCE_TRIGGERS Resource = "triggers"
@@ -76,6 +78,7 @@ const (
 // All allowed values of Resource enum
 var AllowedResourceEnumValues = []Resource{
 	"NONE",
+	"ANY",
 	"dashboard",
 	"settings",
 	"auditLogs",
@@ -83,7 +86,6 @@ var AllowedResourceEnumValues = []Resource{
 	"connectors",
 	"attributes",
 	"jobs",
-	"notificationInstances",
 	"users",
 	"roles",
 	"acmeAccounts",
@@ -104,6 +106,8 @@ var AllowedResourceEnumValues = []Resource{
 	"keys",
 	"approvalProfiles",
 	"approvals",
+	"notificationProfiles",
+	"notificationInstances",
 	"rules",
 	"actions",
 	"triggers",
