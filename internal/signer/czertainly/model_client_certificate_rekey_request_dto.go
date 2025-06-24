@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.14.2-SNAPSHOT
+API version: 2.15.0
 Contact: info@czertainly.com
 */
 
@@ -30,8 +30,14 @@ type ClientCertificateRekeyRequestDto struct {
 	KeyUuid *string `json:"keyUuid,omitempty"`
 	// Token Profile UUID
 	TokenProfileUuid *string `json:"tokenProfileUuid,omitempty"`
+	// Alternative Key UUID
+	AltKeyUuid *string `json:"altKeyUuid,omitempty"`
+	// Token Profile UUID for the alternative key
+	AltTokenProfileUuid *string `json:"altTokenProfileUuid,omitempty"`
 	// Signature Attributes. If not provided, existing attributes will be used to generate the new CSR
 	SignatureAttributes []RequestAttributeDto `json:"signatureAttributes,omitempty"`
+	// Alternative Signature Attributes. If not provided, existing alternative attributes will be used to generate the new CSR
+	AltSignatureAttributes []RequestAttributeDto `json:"altSignatureAttributes,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -218,6 +224,70 @@ func (o *ClientCertificateRekeyRequestDto) SetTokenProfileUuid(v string) {
 	o.TokenProfileUuid = &v
 }
 
+// GetAltKeyUuid returns the AltKeyUuid field value if set, zero value otherwise.
+func (o *ClientCertificateRekeyRequestDto) GetAltKeyUuid() string {
+	if o == nil || IsNil(o.AltKeyUuid) {
+		var ret string
+		return ret
+	}
+	return *o.AltKeyUuid
+}
+
+// GetAltKeyUuidOk returns a tuple with the AltKeyUuid field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ClientCertificateRekeyRequestDto) GetAltKeyUuidOk() (*string, bool) {
+	if o == nil || IsNil(o.AltKeyUuid) {
+		return nil, false
+	}
+	return o.AltKeyUuid, true
+}
+
+// HasAltKeyUuid returns a boolean if a field has been set.
+func (o *ClientCertificateRekeyRequestDto) HasAltKeyUuid() bool {
+	if o != nil && !IsNil(o.AltKeyUuid) {
+		return true
+	}
+
+	return false
+}
+
+// SetAltKeyUuid gets a reference to the given string and assigns it to the AltKeyUuid field.
+func (o *ClientCertificateRekeyRequestDto) SetAltKeyUuid(v string) {
+	o.AltKeyUuid = &v
+}
+
+// GetAltTokenProfileUuid returns the AltTokenProfileUuid field value if set, zero value otherwise.
+func (o *ClientCertificateRekeyRequestDto) GetAltTokenProfileUuid() string {
+	if o == nil || IsNil(o.AltTokenProfileUuid) {
+		var ret string
+		return ret
+	}
+	return *o.AltTokenProfileUuid
+}
+
+// GetAltTokenProfileUuidOk returns a tuple with the AltTokenProfileUuid field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ClientCertificateRekeyRequestDto) GetAltTokenProfileUuidOk() (*string, bool) {
+	if o == nil || IsNil(o.AltTokenProfileUuid) {
+		return nil, false
+	}
+	return o.AltTokenProfileUuid, true
+}
+
+// HasAltTokenProfileUuid returns a boolean if a field has been set.
+func (o *ClientCertificateRekeyRequestDto) HasAltTokenProfileUuid() bool {
+	if o != nil && !IsNil(o.AltTokenProfileUuid) {
+		return true
+	}
+
+	return false
+}
+
+// SetAltTokenProfileUuid gets a reference to the given string and assigns it to the AltTokenProfileUuid field.
+func (o *ClientCertificateRekeyRequestDto) SetAltTokenProfileUuid(v string) {
+	o.AltTokenProfileUuid = &v
+}
+
 // GetSignatureAttributes returns the SignatureAttributes field value if set, zero value otherwise.
 func (o *ClientCertificateRekeyRequestDto) GetSignatureAttributes() []RequestAttributeDto {
 	if o == nil || IsNil(o.SignatureAttributes) {
@@ -250,6 +320,38 @@ func (o *ClientCertificateRekeyRequestDto) SetSignatureAttributes(v []RequestAtt
 	o.SignatureAttributes = v
 }
 
+// GetAltSignatureAttributes returns the AltSignatureAttributes field value if set, zero value otherwise.
+func (o *ClientCertificateRekeyRequestDto) GetAltSignatureAttributes() []RequestAttributeDto {
+	if o == nil || IsNil(o.AltSignatureAttributes) {
+		var ret []RequestAttributeDto
+		return ret
+	}
+	return o.AltSignatureAttributes
+}
+
+// GetAltSignatureAttributesOk returns a tuple with the AltSignatureAttributes field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *ClientCertificateRekeyRequestDto) GetAltSignatureAttributesOk() ([]RequestAttributeDto, bool) {
+	if o == nil || IsNil(o.AltSignatureAttributes) {
+		return nil, false
+	}
+	return o.AltSignatureAttributes, true
+}
+
+// HasAltSignatureAttributes returns a boolean if a field has been set.
+func (o *ClientCertificateRekeyRequestDto) HasAltSignatureAttributes() bool {
+	if o != nil && !IsNil(o.AltSignatureAttributes) {
+		return true
+	}
+
+	return false
+}
+
+// SetAltSignatureAttributes gets a reference to the given []RequestAttributeDto and assigns it to the AltSignatureAttributes field.
+func (o *ClientCertificateRekeyRequestDto) SetAltSignatureAttributes(v []RequestAttributeDto) {
+	o.AltSignatureAttributes = v
+}
+
 func (o ClientCertificateRekeyRequestDto) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -275,8 +377,17 @@ func (o ClientCertificateRekeyRequestDto) ToMap() (map[string]interface{}, error
 	if !IsNil(o.TokenProfileUuid) {
 		toSerialize["tokenProfileUuid"] = o.TokenProfileUuid
 	}
+	if !IsNil(o.AltKeyUuid) {
+		toSerialize["altKeyUuid"] = o.AltKeyUuid
+	}
+	if !IsNil(o.AltTokenProfileUuid) {
+		toSerialize["altTokenProfileUuid"] = o.AltTokenProfileUuid
+	}
 	if !IsNil(o.SignatureAttributes) {
 		toSerialize["signatureAttributes"] = o.SignatureAttributes
+	}
+	if !IsNil(o.AltSignatureAttributes) {
+		toSerialize["altSignatureAttributes"] = o.AltSignatureAttributes
 	}
 
 	for key, value := range o.AdditionalProperties {
@@ -305,7 +416,10 @@ func (o *ClientCertificateRekeyRequestDto) UnmarshalJSON(data []byte) (err error
 		delete(additionalProperties, "format")
 		delete(additionalProperties, "keyUuid")
 		delete(additionalProperties, "tokenProfileUuid")
+		delete(additionalProperties, "altKeyUuid")
+		delete(additionalProperties, "altTokenProfileUuid")
 		delete(additionalProperties, "signatureAttributes")
+		delete(additionalProperties, "altSignatureAttributes")
 		o.AdditionalProperties = additionalProperties
 	}
 

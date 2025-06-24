@@ -3,7 +3,7 @@ CZERTAINLY Cert Manager
 
 REST API for implementations of cert-manager issuer
 
-API version: 2.14.2-SNAPSHOT
+API version: 2.15.0
 Contact: info@czertainly.com
 */
 
@@ -29,6 +29,8 @@ type CertificateRequestDto struct {
 	PublicKeyAlgorithm string `json:"publicKeyAlgorithm"`
 	// Certificate signature algorithm
 	SignatureAlgorithm string `json:"signatureAlgorithm"`
+	// Certificate alternative signature algorithm
+	AltSignatureAlgorithm string `json:"altSignatureAlgorithm"`
 	// Certificate request content
 	Content string `json:"content"`
 	// Certificate common name
@@ -41,8 +43,12 @@ type CertificateRequestDto struct {
 	Attributes []ResponseAttributeDto `json:"attributes,omitempty"`
 	// Signature Attributes
 	SignatureAttributes []ResponseAttributeDto `json:"signatureAttributes,omitempty"`
+	// Alternative Signature Attributes
+	AltSignatureAttributes []ResponseAttributeDto `json:"altSignatureAttributes,omitempty"`
 	// UUID of the Key
 	KeyUuid *string `json:"keyUuid,omitempty"`
+	// UUID of the Alternative Key
+	AltKeyUuid *string `json:"altKeyUuid,omitempty"`
 	AdditionalProperties map[string]interface{}
 }
 
@@ -52,12 +58,13 @@ type _CertificateRequestDto CertificateRequestDto
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCertificateRequestDto(certificateType CertificateType, certificateRequestFormat CertificateRequestFormat, publicKeyAlgorithm string, signatureAlgorithm string, content string, commonName string, subjectDn string) *CertificateRequestDto {
+func NewCertificateRequestDto(certificateType CertificateType, certificateRequestFormat CertificateRequestFormat, publicKeyAlgorithm string, signatureAlgorithm string, altSignatureAlgorithm string, content string, commonName string, subjectDn string) *CertificateRequestDto {
 	this := CertificateRequestDto{}
 	this.CertificateType = certificateType
 	this.CertificateRequestFormat = certificateRequestFormat
 	this.PublicKeyAlgorithm = publicKeyAlgorithm
 	this.SignatureAlgorithm = signatureAlgorithm
+	this.AltSignatureAlgorithm = altSignatureAlgorithm
 	this.Content = content
 	this.CommonName = commonName
 	this.SubjectDn = subjectDn
@@ -166,6 +173,30 @@ func (o *CertificateRequestDto) GetSignatureAlgorithmOk() (*string, bool) {
 // SetSignatureAlgorithm sets field value
 func (o *CertificateRequestDto) SetSignatureAlgorithm(v string) {
 	o.SignatureAlgorithm = v
+}
+
+// GetAltSignatureAlgorithm returns the AltSignatureAlgorithm field value
+func (o *CertificateRequestDto) GetAltSignatureAlgorithm() string {
+	if o == nil {
+		var ret string
+		return ret
+	}
+
+	return o.AltSignatureAlgorithm
+}
+
+// GetAltSignatureAlgorithmOk returns a tuple with the AltSignatureAlgorithm field value
+// and a boolean to check if the value has been set.
+func (o *CertificateRequestDto) GetAltSignatureAlgorithmOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return &o.AltSignatureAlgorithm, true
+}
+
+// SetAltSignatureAlgorithm sets field value
+func (o *CertificateRequestDto) SetAltSignatureAlgorithm(v string) {
+	o.AltSignatureAlgorithm = v
 }
 
 // GetContent returns the Content field value
@@ -336,6 +367,38 @@ func (o *CertificateRequestDto) SetSignatureAttributes(v []ResponseAttributeDto)
 	o.SignatureAttributes = v
 }
 
+// GetAltSignatureAttributes returns the AltSignatureAttributes field value if set, zero value otherwise.
+func (o *CertificateRequestDto) GetAltSignatureAttributes() []ResponseAttributeDto {
+	if o == nil || IsNil(o.AltSignatureAttributes) {
+		var ret []ResponseAttributeDto
+		return ret
+	}
+	return o.AltSignatureAttributes
+}
+
+// GetAltSignatureAttributesOk returns a tuple with the AltSignatureAttributes field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CertificateRequestDto) GetAltSignatureAttributesOk() ([]ResponseAttributeDto, bool) {
+	if o == nil || IsNil(o.AltSignatureAttributes) {
+		return nil, false
+	}
+	return o.AltSignatureAttributes, true
+}
+
+// HasAltSignatureAttributes returns a boolean if a field has been set.
+func (o *CertificateRequestDto) HasAltSignatureAttributes() bool {
+	if o != nil && !IsNil(o.AltSignatureAttributes) {
+		return true
+	}
+
+	return false
+}
+
+// SetAltSignatureAttributes gets a reference to the given []ResponseAttributeDto and assigns it to the AltSignatureAttributes field.
+func (o *CertificateRequestDto) SetAltSignatureAttributes(v []ResponseAttributeDto) {
+	o.AltSignatureAttributes = v
+}
+
 // GetKeyUuid returns the KeyUuid field value if set, zero value otherwise.
 func (o *CertificateRequestDto) GetKeyUuid() string {
 	if o == nil || IsNil(o.KeyUuid) {
@@ -368,6 +431,38 @@ func (o *CertificateRequestDto) SetKeyUuid(v string) {
 	o.KeyUuid = &v
 }
 
+// GetAltKeyUuid returns the AltKeyUuid field value if set, zero value otherwise.
+func (o *CertificateRequestDto) GetAltKeyUuid() string {
+	if o == nil || IsNil(o.AltKeyUuid) {
+		var ret string
+		return ret
+	}
+	return *o.AltKeyUuid
+}
+
+// GetAltKeyUuidOk returns a tuple with the AltKeyUuid field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *CertificateRequestDto) GetAltKeyUuidOk() (*string, bool) {
+	if o == nil || IsNil(o.AltKeyUuid) {
+		return nil, false
+	}
+	return o.AltKeyUuid, true
+}
+
+// HasAltKeyUuid returns a boolean if a field has been set.
+func (o *CertificateRequestDto) HasAltKeyUuid() bool {
+	if o != nil && !IsNil(o.AltKeyUuid) {
+		return true
+	}
+
+	return false
+}
+
+// SetAltKeyUuid gets a reference to the given string and assigns it to the AltKeyUuid field.
+func (o *CertificateRequestDto) SetAltKeyUuid(v string) {
+	o.AltKeyUuid = &v
+}
+
 func (o CertificateRequestDto) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -382,6 +477,7 @@ func (o CertificateRequestDto) ToMap() (map[string]interface{}, error) {
 	toSerialize["certificateRequestFormat"] = o.CertificateRequestFormat
 	toSerialize["publicKeyAlgorithm"] = o.PublicKeyAlgorithm
 	toSerialize["signatureAlgorithm"] = o.SignatureAlgorithm
+	toSerialize["altSignatureAlgorithm"] = o.AltSignatureAlgorithm
 	toSerialize["content"] = o.Content
 	toSerialize["commonName"] = o.CommonName
 	toSerialize["subjectDn"] = o.SubjectDn
@@ -394,8 +490,14 @@ func (o CertificateRequestDto) ToMap() (map[string]interface{}, error) {
 	if !IsNil(o.SignatureAttributes) {
 		toSerialize["signatureAttributes"] = o.SignatureAttributes
 	}
+	if !IsNil(o.AltSignatureAttributes) {
+		toSerialize["altSignatureAttributes"] = o.AltSignatureAttributes
+	}
 	if !IsNil(o.KeyUuid) {
 		toSerialize["keyUuid"] = o.KeyUuid
+	}
+	if !IsNil(o.AltKeyUuid) {
+		toSerialize["altKeyUuid"] = o.AltKeyUuid
 	}
 
 	for key, value := range o.AdditionalProperties {
@@ -414,6 +516,7 @@ func (o *CertificateRequestDto) UnmarshalJSON(data []byte) (err error) {
 		"certificateRequestFormat",
 		"publicKeyAlgorithm",
 		"signatureAlgorithm",
+		"altSignatureAlgorithm",
 		"content",
 		"commonName",
 		"subjectDn",
@@ -450,13 +553,16 @@ func (o *CertificateRequestDto) UnmarshalJSON(data []byte) (err error) {
 		delete(additionalProperties, "certificateRequestFormat")
 		delete(additionalProperties, "publicKeyAlgorithm")
 		delete(additionalProperties, "signatureAlgorithm")
+		delete(additionalProperties, "altSignatureAlgorithm")
 		delete(additionalProperties, "content")
 		delete(additionalProperties, "commonName")
 		delete(additionalProperties, "subjectDn")
 		delete(additionalProperties, "subjectAlternativeNames")
 		delete(additionalProperties, "attributes")
 		delete(additionalProperties, "signatureAttributes")
+		delete(additionalProperties, "altSignatureAttributes")
 		delete(additionalProperties, "keyUuid")
+		delete(additionalProperties, "altKeyUuid")
 		o.AdditionalProperties = additionalProperties
 	}
 
