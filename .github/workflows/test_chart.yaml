@@ -30,33 +30,52 @@ jobs:
       - name: Set up chart-testing
         uses: helm/chart-testing-action@v2.6.1
 
-      - name: Run chart-testing (list-changed)
+      - name: Detect Changed Charts
         id: list-changed
         run: |
           changed=$(ct list-changed --target-branch main --chart-dirs deploy/charts)
           echo "${changed}"
-          if [[ -n "$changed" ]]; then
-            echo "changed=true" >> $GITHUB_ENV
           
-            # multiline string
+          if [[ -n "$changed" ]]; then
+            echo "✅ Charts changed"
+            echo "changed=true" >> $GITHUB_ENV
+
             echo "changed_charts<<EOF" >> $GITHUB_ENV
             echo "$changed" >> $GITHUB_ENV
             echo "EOF" >> $GITHUB_ENV
+          else
+            echo "ℹ️ No chart changes detected"
+            echo "changed=false" >> $GITHUB_ENV
           fi
 
-      - name: Check if chart version is develop
-        if: env.changed == 'true'
+      - name: Skip testing when no charts changed
+        if: env.changed != 'true'
+        run: echo "No chart changes detected — skipping install tests." && exit 0
+
+      - name: Check for Development Versions (Non-release PRs)
+        if: env.changed == 'true' && !startsWith(github.head_ref, 'release')
         env:
           changed_charts: ${{ env.changed_charts }}
         run: |
-          #echo "${changed}"
-          #echo "${changed_charts}"
-          for CHART in $changed_charts
-          do
-            echo "Checking chart $CHART for develop version"
-            version=$(yq ".version" < ${CHART}/Chart.yaml)
+          for CHART in $changed_charts; do
+            echo "🔍 Checking chart $CHART for development version"
+            version=$(yq ".version" < "${CHART}/Chart.yaml")
             if [[ $version != *-develop ]]; then
-              echo "Chart $CHART changed, but not intended for develop" 
+              echo "❌ Chart $CHART has version '$version' but should be a development version (*-develop)"
+              exit 1
+            fi
+          done
+
+      - name: Check for Non-Develop Versions (Release PRs)
+        if: env.changed == 'true' && startsWith(github.head_ref, 'release')
+        env:
+          changed_charts: ${{ env.changed_charts }}
+        run: |
+          for CHART in $changed_charts; do
+            echo "🔍 Checking chart $CHART for release-ready version"
+            version=$(yq ".version" < "${CHART}/Chart.yaml")
+            if [[ $version == *-develop ]]; then
+              echo "❌ Chart $CHART has development version '$version' in a release branch"
               exit 1
             fi
           done
@@ -74,6 +93,7 @@ jobs:
         run: kubectl create namespace chart-testing
 
       - name: Run chart-testing (install)
+        if: env.changed == 'true'
         run: |
           kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.11.1/cert-manager.crds.yaml
           ct install --namespace chart-testing --target-branch main --chart-dirs deploy/charts
