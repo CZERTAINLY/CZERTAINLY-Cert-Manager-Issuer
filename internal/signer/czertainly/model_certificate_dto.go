@@ -41,17 +41,17 @@ type CertificateDto struct {
 	// Public key algorithm
 	PublicKeyAlgorithm string `json:"publicKeyAlgorithm"`
 	// Alternative Public key algorithm
-	AltPublicKeyAlgorithm string `json:"altPublicKeyAlgorithm"`
+	AltPublicKeyAlgorithm *string `json:"altPublicKeyAlgorithm,omitempty"`
 	// Certificate signature algorithm
-	SignatureAlgorithm string `json:"signatureAlgorithm"`
+	SignatureAlgorithm *string `json:"signatureAlgorithm,omitempty"`
 	// Certificate alternative signature algorithm
-	AltSignatureAlgorithm string `json:"altSignatureAlgorithm"`
+	AltSignatureAlgorithm *string `json:"altSignatureAlgorithm,omitempty"`
 	// Indicator whether the certificate is hybrid
 	HybridCertificate bool `json:"hybridCertificate"`
 	// Certificate key size
 	KeySize int32 `json:"keySize"`
 	// Certificate key size of the alternative key
-	AltKeySize int32 `json:"altKeySize"`
+	AltKeySize *int32 `json:"altKeySize,omitempty"`
 	// State of the Certificate
 	State CertificateState `json:"state"`
 	// Current validation status of the certificate
@@ -87,18 +87,14 @@ type _CertificateDto CertificateDto
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCertificateDto(uuid string, commonName string, subjectDn string, publicKeyAlgorithm string, altPublicKeyAlgorithm string, signatureAlgorithm string, altSignatureAlgorithm string, hybridCertificate bool, keySize int32, altKeySize int32, state CertificateState, validationStatus CertificateValidationStatus, certificateType CertificateType, complianceStatus ComplianceStatus, privateKeyAvailability bool) *CertificateDto {
+func NewCertificateDto(uuid string, commonName string, subjectDn string, publicKeyAlgorithm string, hybridCertificate bool, keySize int32, state CertificateState, validationStatus CertificateValidationStatus, certificateType CertificateType, complianceStatus ComplianceStatus, privateKeyAvailability bool) *CertificateDto {
 	this := CertificateDto{}
 	this.Uuid = uuid
 	this.CommonName = commonName
 	this.SubjectDn = subjectDn
 	this.PublicKeyAlgorithm = publicKeyAlgorithm
-	this.AltPublicKeyAlgorithm = altPublicKeyAlgorithm
-	this.SignatureAlgorithm = signatureAlgorithm
-	this.AltSignatureAlgorithm = altSignatureAlgorithm
 	this.HybridCertificate = hybridCertificate
 	this.KeySize = keySize
-	this.AltKeySize = altKeySize
 	this.State = state
 	this.ValidationStatus = validationStatus
 	this.CertificateType = certificateType
@@ -371,76 +367,100 @@ func (o *CertificateDto) SetPublicKeyAlgorithm(v string) {
 	o.PublicKeyAlgorithm = v
 }
 
-// GetAltPublicKeyAlgorithm returns the AltPublicKeyAlgorithm field value
+// GetAltPublicKeyAlgorithm returns the AltPublicKeyAlgorithm field value if set, zero value otherwise.
 func (o *CertificateDto) GetAltPublicKeyAlgorithm() string {
-	if o == nil {
+	if o == nil || IsNil(o.AltPublicKeyAlgorithm) {
 		var ret string
 		return ret
 	}
-
-	return o.AltPublicKeyAlgorithm
+	return *o.AltPublicKeyAlgorithm
 }
 
-// GetAltPublicKeyAlgorithmOk returns a tuple with the AltPublicKeyAlgorithm field value
+// GetAltPublicKeyAlgorithmOk returns a tuple with the AltPublicKeyAlgorithm field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *CertificateDto) GetAltPublicKeyAlgorithmOk() (*string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.AltPublicKeyAlgorithm) {
 		return nil, false
 	}
-	return &o.AltPublicKeyAlgorithm, true
+	return o.AltPublicKeyAlgorithm, true
 }
 
-// SetAltPublicKeyAlgorithm sets field value
+// HasAltPublicKeyAlgorithm returns a boolean if a field has been set.
+func (o *CertificateDto) HasAltPublicKeyAlgorithm() bool {
+	if o != nil && !IsNil(o.AltPublicKeyAlgorithm) {
+		return true
+	}
+
+	return false
+}
+
+// SetAltPublicKeyAlgorithm gets a reference to the given string and assigns it to the AltPublicKeyAlgorithm field.
 func (o *CertificateDto) SetAltPublicKeyAlgorithm(v string) {
-	o.AltPublicKeyAlgorithm = v
+	o.AltPublicKeyAlgorithm = &v
 }
 
-// GetSignatureAlgorithm returns the SignatureAlgorithm field value
+// GetSignatureAlgorithm returns the SignatureAlgorithm field value if set, zero value otherwise.
 func (o *CertificateDto) GetSignatureAlgorithm() string {
-	if o == nil {
+	if o == nil || IsNil(o.SignatureAlgorithm) {
 		var ret string
 		return ret
 	}
-
-	return o.SignatureAlgorithm
+	return *o.SignatureAlgorithm
 }
 
-// GetSignatureAlgorithmOk returns a tuple with the SignatureAlgorithm field value
+// GetSignatureAlgorithmOk returns a tuple with the SignatureAlgorithm field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *CertificateDto) GetSignatureAlgorithmOk() (*string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.SignatureAlgorithm) {
 		return nil, false
 	}
-	return &o.SignatureAlgorithm, true
+	return o.SignatureAlgorithm, true
 }
 
-// SetSignatureAlgorithm sets field value
+// HasSignatureAlgorithm returns a boolean if a field has been set.
+func (o *CertificateDto) HasSignatureAlgorithm() bool {
+	if o != nil && !IsNil(o.SignatureAlgorithm) {
+		return true
+	}
+
+	return false
+}
+
+// SetSignatureAlgorithm gets a reference to the given string and assigns it to the SignatureAlgorithm field.
 func (o *CertificateDto) SetSignatureAlgorithm(v string) {
-	o.SignatureAlgorithm = v
+	o.SignatureAlgorithm = &v
 }
 
-// GetAltSignatureAlgorithm returns the AltSignatureAlgorithm field value
+// GetAltSignatureAlgorithm returns the AltSignatureAlgorithm field value if set, zero value otherwise.
 func (o *CertificateDto) GetAltSignatureAlgorithm() string {
-	if o == nil {
+	if o == nil || IsNil(o.AltSignatureAlgorithm) {
 		var ret string
 		return ret
 	}
-
-	return o.AltSignatureAlgorithm
+	return *o.AltSignatureAlgorithm
 }
 
-// GetAltSignatureAlgorithmOk returns a tuple with the AltSignatureAlgorithm field value
+// GetAltSignatureAlgorithmOk returns a tuple with the AltSignatureAlgorithm field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *CertificateDto) GetAltSignatureAlgorithmOk() (*string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.AltSignatureAlgorithm) {
 		return nil, false
 	}
-	return &o.AltSignatureAlgorithm, true
+	return o.AltSignatureAlgorithm, true
 }
 
-// SetAltSignatureAlgorithm sets field value
+// HasAltSignatureAlgorithm returns a boolean if a field has been set.
+func (o *CertificateDto) HasAltSignatureAlgorithm() bool {
+	if o != nil && !IsNil(o.AltSignatureAlgorithm) {
+		return true
+	}
+
+	return false
+}
+
+// SetAltSignatureAlgorithm gets a reference to the given string and assigns it to the AltSignatureAlgorithm field.
 func (o *CertificateDto) SetAltSignatureAlgorithm(v string) {
-	o.AltSignatureAlgorithm = v
+	o.AltSignatureAlgorithm = &v
 }
 
 // GetHybridCertificate returns the HybridCertificate field value
@@ -491,28 +511,36 @@ func (o *CertificateDto) SetKeySize(v int32) {
 	o.KeySize = v
 }
 
-// GetAltKeySize returns the AltKeySize field value
+// GetAltKeySize returns the AltKeySize field value if set, zero value otherwise.
 func (o *CertificateDto) GetAltKeySize() int32 {
-	if o == nil {
+	if o == nil || IsNil(o.AltKeySize) {
 		var ret int32
 		return ret
 	}
-
-	return o.AltKeySize
+	return *o.AltKeySize
 }
 
-// GetAltKeySizeOk returns a tuple with the AltKeySize field value
+// GetAltKeySizeOk returns a tuple with the AltKeySize field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *CertificateDto) GetAltKeySizeOk() (*int32, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.AltKeySize) {
 		return nil, false
 	}
-	return &o.AltKeySize, true
+	return o.AltKeySize, true
 }
 
-// SetAltKeySize sets field value
+// HasAltKeySize returns a boolean if a field has been set.
+func (o *CertificateDto) HasAltKeySize() bool {
+	if o != nil && !IsNil(o.AltKeySize) {
+		return true
+	}
+
+	return false
+}
+
+// SetAltKeySize gets a reference to the given int32 and assigns it to the AltKeySize field.
 func (o *CertificateDto) SetAltKeySize(v int32) {
-	o.AltKeySize = v
+	o.AltKeySize = &v
 }
 
 // GetState returns the State field value
@@ -920,12 +948,20 @@ func (o CertificateDto) ToMap() (map[string]interface{}, error) {
 		toSerialize["notAfter"] = o.NotAfter
 	}
 	toSerialize["publicKeyAlgorithm"] = o.PublicKeyAlgorithm
-	toSerialize["altPublicKeyAlgorithm"] = o.AltPublicKeyAlgorithm
-	toSerialize["signatureAlgorithm"] = o.SignatureAlgorithm
-	toSerialize["altSignatureAlgorithm"] = o.AltSignatureAlgorithm
+	if !IsNil(o.AltPublicKeyAlgorithm) {
+		toSerialize["altPublicKeyAlgorithm"] = o.AltPublicKeyAlgorithm
+	}
+	if !IsNil(o.SignatureAlgorithm) {
+		toSerialize["signatureAlgorithm"] = o.SignatureAlgorithm
+	}
+	if !IsNil(o.AltSignatureAlgorithm) {
+		toSerialize["altSignatureAlgorithm"] = o.AltSignatureAlgorithm
+	}
 	toSerialize["hybridCertificate"] = o.HybridCertificate
 	toSerialize["keySize"] = o.KeySize
-	toSerialize["altKeySize"] = o.AltKeySize
+	if !IsNil(o.AltKeySize) {
+		toSerialize["altKeySize"] = o.AltKeySize
+	}
 	toSerialize["state"] = o.State
 	toSerialize["validationStatus"] = o.ValidationStatus
 	if !IsNil(o.RaProfile) {
@@ -972,12 +1008,8 @@ func (o *CertificateDto) UnmarshalJSON(data []byte) (err error) {
 		"commonName",
 		"subjectDn",
 		"publicKeyAlgorithm",
-		"altPublicKeyAlgorithm",
-		"signatureAlgorithm",
-		"altSignatureAlgorithm",
 		"hybridCertificate",
 		"keySize",
-		"altKeySize",
 		"state",
 		"validationStatus",
 		"certificateType",
