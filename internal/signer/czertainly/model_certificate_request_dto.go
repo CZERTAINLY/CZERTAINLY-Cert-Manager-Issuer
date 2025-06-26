@@ -30,7 +30,7 @@ type CertificateRequestDto struct {
 	// Certificate signature algorithm
 	SignatureAlgorithm string `json:"signatureAlgorithm"`
 	// Certificate alternative signature algorithm
-	AltSignatureAlgorithm string `json:"altSignatureAlgorithm"`
+	AltSignatureAlgorithm *string `json:"altSignatureAlgorithm,omitempty"`
 	// Certificate request content
 	Content string `json:"content"`
 	// Certificate common name
@@ -58,13 +58,12 @@ type _CertificateRequestDto CertificateRequestDto
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewCertificateRequestDto(certificateType CertificateType, certificateRequestFormat CertificateRequestFormat, publicKeyAlgorithm string, signatureAlgorithm string, altSignatureAlgorithm string, content string, commonName string, subjectDn string) *CertificateRequestDto {
+func NewCertificateRequestDto(certificateType CertificateType, certificateRequestFormat CertificateRequestFormat, publicKeyAlgorithm string, signatureAlgorithm string, content string, commonName string, subjectDn string) *CertificateRequestDto {
 	this := CertificateRequestDto{}
 	this.CertificateType = certificateType
 	this.CertificateRequestFormat = certificateRequestFormat
 	this.PublicKeyAlgorithm = publicKeyAlgorithm
 	this.SignatureAlgorithm = signatureAlgorithm
-	this.AltSignatureAlgorithm = altSignatureAlgorithm
 	this.Content = content
 	this.CommonName = commonName
 	this.SubjectDn = subjectDn
@@ -175,28 +174,36 @@ func (o *CertificateRequestDto) SetSignatureAlgorithm(v string) {
 	o.SignatureAlgorithm = v
 }
 
-// GetAltSignatureAlgorithm returns the AltSignatureAlgorithm field value
+// GetAltSignatureAlgorithm returns the AltSignatureAlgorithm field value if set, zero value otherwise.
 func (o *CertificateRequestDto) GetAltSignatureAlgorithm() string {
-	if o == nil {
+	if o == nil || IsNil(o.AltSignatureAlgorithm) {
 		var ret string
 		return ret
 	}
-
-	return o.AltSignatureAlgorithm
+	return *o.AltSignatureAlgorithm
 }
 
-// GetAltSignatureAlgorithmOk returns a tuple with the AltSignatureAlgorithm field value
+// GetAltSignatureAlgorithmOk returns a tuple with the AltSignatureAlgorithm field value if set, nil otherwise
 // and a boolean to check if the value has been set.
 func (o *CertificateRequestDto) GetAltSignatureAlgorithmOk() (*string, bool) {
-	if o == nil {
+	if o == nil || IsNil(o.AltSignatureAlgorithm) {
 		return nil, false
 	}
-	return &o.AltSignatureAlgorithm, true
+	return o.AltSignatureAlgorithm, true
 }
 
-// SetAltSignatureAlgorithm sets field value
+// HasAltSignatureAlgorithm returns a boolean if a field has been set.
+func (o *CertificateRequestDto) HasAltSignatureAlgorithm() bool {
+	if o != nil && !IsNil(o.AltSignatureAlgorithm) {
+		return true
+	}
+
+	return false
+}
+
+// SetAltSignatureAlgorithm gets a reference to the given string and assigns it to the AltSignatureAlgorithm field.
 func (o *CertificateRequestDto) SetAltSignatureAlgorithm(v string) {
-	o.AltSignatureAlgorithm = v
+	o.AltSignatureAlgorithm = &v
 }
 
 // GetContent returns the Content field value
@@ -477,7 +484,9 @@ func (o CertificateRequestDto) ToMap() (map[string]interface{}, error) {
 	toSerialize["certificateRequestFormat"] = o.CertificateRequestFormat
 	toSerialize["publicKeyAlgorithm"] = o.PublicKeyAlgorithm
 	toSerialize["signatureAlgorithm"] = o.SignatureAlgorithm
-	toSerialize["altSignatureAlgorithm"] = o.AltSignatureAlgorithm
+	if !IsNil(o.AltSignatureAlgorithm) {
+		toSerialize["altSignatureAlgorithm"] = o.AltSignatureAlgorithm
+	}
 	toSerialize["content"] = o.Content
 	toSerialize["commonName"] = o.CommonName
 	toSerialize["subjectDn"] = o.SubjectDn
@@ -516,7 +525,6 @@ func (o *CertificateRequestDto) UnmarshalJSON(data []byte) (err error) {
 		"certificateRequestFormat",
 		"publicKeyAlgorithm",
 		"signatureAlgorithm",
-		"altSignatureAlgorithm",
 		"content",
 		"commonName",
 		"subjectDn",

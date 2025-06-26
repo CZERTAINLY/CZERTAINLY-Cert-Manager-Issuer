@@ -21,6 +21,10 @@ rules:
     resources: [ "certificaterequests/status" ]
     verbs: [ "get", "patch", "update" ]
 
+  - apiGroups: [ "cert-manager.io" ]
+    resources: [ "certificates" ]
+    verbs: [ "list", "watch", "patch" ]
+
   - apiGroups: [ "czertainly-issuer.czertainly.com" ]
     resources: [ "czertainlyclusterissuers", "czertainlyissuers" ]
     verbs: ["get", "list", "watch"]
