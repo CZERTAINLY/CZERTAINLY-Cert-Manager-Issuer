@@ -5,7 +5,7 @@ go 1.22.0
 toolchain go1.23.0
 
 require (
-	github.com/cert-manager/cert-manager v1.15.3
+	github.com/cert-manager/cert-manager v1.15.4
 	github.com/cert-manager/issuer-lib v0.8.0
 	golang.org/x/oauth2 v0.21.0
 	gopkg.in/validator.v2 v2.0.1
