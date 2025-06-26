@@ -42,10 +42,10 @@ jobs:
             echo "Last tag: $last_tag"
             echo "last_tag=$last_tag" >> $GITHUB_ENV
 
-            changed=$(ct list-changed --target-branch "$BRANCH" --since "$last_tag" --chart-dirs deploy/charts)
+            changed=$(ct list-changed --target-branch main --since "$last_tag" --chart-dirs deploy/charts)
           else
             echo "🔀 Detected branch push (likely a merge)"
-            changed=$(ct list-changed --target-branch "$BRANCH" --since HEAD^1 --chart-dirs deploy/charts)
+            changed=$(ct list-changed --target-branch main --since HEAD^1 --chart-dirs deploy/charts)
           fi
           
           echo "${changed}"
@@ -100,9 +100,9 @@ jobs:
           last_tag: ${{ env.last_tag }}
         run: |
           if [[ "${{ github.ref_type }}" == "tag" ]]; then
-            ct lint --target-branch "$BRANCH" --since $last_tag --chart-dirs deploy/charts --check-version-increment=false
+            ct lint --target-branch main --since $last_tag --chart-dirs deploy/charts --check-version-increment=false
           else
-            ct lint --target-branch "$BRANCH" --since HEAD^1 --chart-dirs deploy/charts --check-version-increment=false
+            ct lint --target-branch main --since HEAD^1 --chart-dirs deploy/charts --check-version-increment=false
           fi
 
       - name: Install Cosign
