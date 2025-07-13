@@ -7,7 +7,7 @@ toolchain go1.24.3
 require (
 	github.com/cert-manager/cert-manager v1.18.1
 	github.com/cert-manager/issuer-lib v0.8.0
-	golang.org/x/oauth2 v0.28.0
+	golang.org/x/oauth2 v0.30.0
 	gopkg.in/validator.v2 v2.0.1
 	k8s.io/api v0.32.0
 	k8s.io/apimachinery v0.32.0
