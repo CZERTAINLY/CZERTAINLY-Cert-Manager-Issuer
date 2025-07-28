@@ -94,9 +94,19 @@ func createHttpClient(ctx context.Context, issuerSpec *czertainlyissuerapi.Issue
 			Scopes:       strings.Split(string(authSecret.Data["scopes"]), " "),
 		}
 
+		tlsTransport := &http.Transport{TLSClientConfig: tlsConfig}
+
+		baseClient := &http.Client{
+			Transport: tlsTransport,
+			Timeout:   10 * time.Second,
+		}
+
+		// put it in the context so client credentials can see it
+		ctx = context.WithValue(ctx, oauth2.HTTPClient, baseClient)
+
 		return &http.Client{
 			Transport: &oauth2.Transport{
-				Base:   &http.Transport{TLSClientConfig: tlsConfig},
+				Base:   tlsTransport,
 				Source: config.TokenSource(ctx),
 			},
 			Timeout: 10 * time.Second,
