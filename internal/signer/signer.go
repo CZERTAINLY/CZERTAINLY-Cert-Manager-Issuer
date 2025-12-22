@@ -33,17 +33,53 @@ type czertainlySigner struct {
 	k8sClient client.Client
 }
 
-func hardenedTransport(tlsConfig *tls.Config) *http.Transport {
+func hardenedTransport(tlsConfig *tls.Config, httpTransport *czertainlyissuerapi.HttpTransport) *http.Transport {
+	dialTimeout := defaultDialTimeout
+	dialKeepAlive := defaultDialKeepAlive
+	tlsHandshakeTimeout := defaultTLSHandshakeTimeout
+	responseHeaderTimeout := defaultResponseHeaderTimeout
+	idleConnTimeout := defaultIdleConnTimeout
+	expectContinueTimeout := defaultExpectContinueTimeout
+	maxIdleConns := defaultMaxIdleConns
+	maxIdleConnsPerHost := defaultMaxIdleConnsPerHost
+
+	if httpTransport != nil {
+		if httpTransport.DialTimeout != nil {
+			dialTimeout = httpTransport.DialTimeout.Duration
+		}
+		if httpTransport.DialKeepAlive != nil {
+			dialKeepAlive = httpTransport.DialKeepAlive.Duration
+		}
+		if httpTransport.TLSHandshakeTimeout != nil {
+			tlsHandshakeTimeout = httpTransport.TLSHandshakeTimeout.Duration
+		}
+		if httpTransport.ResponseHeaderTimeout != nil {
+			responseHeaderTimeout = httpTransport.ResponseHeaderTimeout.Duration
+		}
+		if httpTransport.IdleConnTimeout != nil {
+			idleConnTimeout = httpTransport.IdleConnTimeout.Duration
+		}
+		if httpTransport.ExpectContinueTimeout != nil {
+			expectContinueTimeout = httpTransport.ExpectContinueTimeout.Duration
+		}
+		if httpTransport.MaxIdleConns != nil {
+			maxIdleConns = *httpTransport.MaxIdleConns
+		}
+		if httpTransport.MaxIdleConnsPerHost != nil {
+			maxIdleConnsPerHost = *httpTransport.MaxIdleConnsPerHost
+		}
+	}
+
 	return &http.Transport{
 		TLSClientConfig:       tlsConfig,
 		Proxy:                 http.ProxyFromEnvironment,
-		DialContext:           (&net.Dialer{Timeout: 5 * time.Second, KeepAlive: 30 * time.Second}).DialContext,
-		TLSHandshakeTimeout:   5 * time.Second,
-		ResponseHeaderTimeout: 20 * time.Second, // avoids "awaiting headers" hangs
-		ExpectContinueTimeout: 1 * time.Second,
-		IdleConnTimeout:       90 * time.Second,
-		MaxIdleConns:          200,
-		MaxIdleConnsPerHost:   20,
+		DialContext:           (&net.Dialer{Timeout: dialTimeout, KeepAlive: dialKeepAlive}).DialContext,
+		TLSHandshakeTimeout:   tlsHandshakeTimeout,
+		ResponseHeaderTimeout: responseHeaderTimeout, // avoids "awaiting headers" hangs
+		ExpectContinueTimeout: expectContinueTimeout,
+		IdleConnTimeout:       idleConnTimeout,
+		MaxIdleConns:          maxIdleConns,
+		MaxIdleConnsPerHost:   maxIdleConnsPerHost,
 		ForceAttemptHTTP2:     true,
 	}
 }
@@ -90,11 +126,15 @@ func createHttpClient(ctx context.Context, issuerSpec *czertainlyissuerapi.Issue
 		return nil, err
 	}
 
-	tr := hardenedTransport(tlsConfig)
+	tr := hardenedTransport(tlsConfig, issuerSpec.HttpTransport)
+	clientTimeout := defaultClientTimeout
+	if issuerSpec.HttpTransport != nil && issuerSpec.HttpTransport.ClientTimeout != nil {
+		clientTimeout = issuerSpec.HttpTransport.ClientTimeout.Duration
+	}
 
 	base := &http.Client{
 		Transport: tr,
-		Timeout:   30 * time.Second, // overall safety net
+		Timeout:   clientTimeout, // overall safety net
 	}
 
 	switch authSecret.Type {
@@ -128,7 +168,7 @@ func createHttpClient(ctx context.Context, issuerSpec *czertainlyissuerapi.Issue
 				Base:   tr,
 				Source: cfg.TokenSource(ctx),
 			},
-			Timeout: 30 * time.Second,
+			Timeout: clientTimeout,
 		}, nil
 
 	default:

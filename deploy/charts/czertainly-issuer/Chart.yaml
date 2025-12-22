@@ -1,7 +1,7 @@
 annotations:
   category: trustLifecycleManagement
 apiVersion: v2
-appVersion: 0.0.3
+appVersion: 0.0.4
 name: czertainly-issuer
 description: A Helm chart for czertainly-issuer cert-manager integration.
 home: https://github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer
@@ -28,4 +28,4 @@ sources:
   - https://github.com/CZERTAINLY/CZERTAINLY
   - https://www.czertainly.com
   - https://docs.czertainly.com
-version: 0.0.3
+version: 0.0.4-develop
