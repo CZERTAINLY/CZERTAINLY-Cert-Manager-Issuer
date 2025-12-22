@@ -175,7 +175,7 @@ func (o *Issuer) Sign(ctx context.Context, cr signer.CertificateRequestObject, i
 		}
 	}
 
-	_, _, _, err = cr.GetRequest()
+	_, err = cr.GetCertificateDetails()
 	if err != nil {
 		return signer.PEMBundle{}, err
 	}
