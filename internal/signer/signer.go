@@ -8,6 +8,11 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"net"
+	"net/http"
+	"strings"
+	"time"
+
 	czertainlyissuerapi "github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer/api/v1alpha1"
 	"github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer/internal/controllers"
 	"github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer/internal/signer/czertainly"
@@ -15,11 +20,8 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 	corev1 "k8s.io/api/core/v1"
-	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"strings"
-	"time"
 )
 
 type czertainlySigner struct {
@@ -29,6 +31,21 @@ type czertainlySigner struct {
 	raProfileName string
 
 	k8sClient client.Client
+}
+
+func hardenedTransport(tlsConfig *tls.Config) *http.Transport {
+	return &http.Transport{
+		TLSClientConfig:       tlsConfig,
+		Proxy:                 http.ProxyFromEnvironment,
+		DialContext:           (&net.Dialer{Timeout: 5 * time.Second, KeepAlive: 30 * time.Second}).DialContext,
+		TLSHandshakeTimeout:   5 * time.Second,
+		ResponseHeaderTimeout: 20 * time.Second, // avoids "awaiting headers" hangs
+		ExpectContinueTimeout: 1 * time.Second,
+		IdleConnTimeout:       90 * time.Second,
+		MaxIdleConns:          200,
+		MaxIdleConnsPerHost:   20,
+		ForceAttemptHTTP2:     true,
+	}
 }
 
 func CzertainlyHealthCheckerFromIssuerAndSecretData(ctx context.Context, issuerSpec *czertainlyissuerapi.IssuerSpec, authSecret corev1.Secret, caBundleSecretData map[string][]byte) (controllers.HealthChecker, error) {
@@ -73,43 +90,45 @@ func createHttpClient(ctx context.Context, issuerSpec *czertainlyissuerapi.Issue
 		return nil, err
 	}
 
+	tr := hardenedTransport(tlsConfig)
+
+	base := &http.Client{
+		Transport: tr,
+		Timeout:   30 * time.Second, // overall safety net
+	}
+
 	switch authSecret.Type {
 	case corev1.SecretTypeTLS:
 		cert, err := tls.X509KeyPair(authSecret.Data["tls.crt"], authSecret.Data["tls.key"])
 		if err != nil {
 			return nil, err
 		}
-		tlsConfig.Certificates = []tls.Certificate{cert}
-
-		return &http.Client{
-			Transport: &http.Transport{TLSClientConfig: tlsConfig},
-			Timeout:   10 * time.Second,
-		}, nil
+		tr.TLSClientConfig.Certificates = []tls.Certificate{cert}
+		return base, nil
 
 	case corev1.SecretTypeOpaque:
-		config := &clientcredentials.Config{
+		scopesRaw := string(authSecret.Data["scopes"])
+		var scopes []string
+		if s := strings.TrimSpace(scopesRaw); s != "" {
+			scopes = strings.Fields(s) // robust split (handles multi-spaces)
+		}
+		cfg := &clientcredentials.Config{
 			ClientID:     string(authSecret.Data["client_id"]),
 			ClientSecret: string(authSecret.Data["client_secret"]),
 			TokenURL:     string(authSecret.Data["token_url"]),
-			Scopes:       strings.Split(string(authSecret.Data["scopes"]), " "),
+			Scopes:       scopes,
+			AuthStyle:    oauth2.AuthStyleInParams, // often safer behind proxies
 		}
 
-		tlsTransport := &http.Transport{TLSClientConfig: tlsConfig}
-
-		baseClient := &http.Client{
-			Transport: tlsTransport,
-			Timeout:   10 * time.Second,
-		}
-
-		// put it in the context so client credentials can see it
-		ctx = context.WithValue(ctx, oauth2.HTTPClient, baseClient)
+		// Let token fetch use the hardened base client
+		ctx = context.WithValue(ctx, oauth2.HTTPClient, base)
 
 		return &http.Client{
 			Transport: &oauth2.Transport{
-				Base:   tlsTransport,
-				Source: config.TokenSource(ctx),
+				Base:   tr,
+				Source: cfg.TokenSource(ctx),
 			},
-			Timeout: 10 * time.Second,
+			Timeout: 30 * time.Second,
 		}, nil
 
 	default:

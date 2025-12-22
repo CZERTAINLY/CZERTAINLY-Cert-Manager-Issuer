@@ -129,6 +129,7 @@ var AllowedResourceEnumValues = []Resource{
 	"cmpTransactions",
 	"endEntityProfiles",
 	"authenticationProviders",
+	"oids",
 }
 
 func (v *Resource) UnmarshalJSON(src []byte) error {
