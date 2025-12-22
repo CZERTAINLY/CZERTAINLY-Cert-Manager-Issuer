@@ -8,7 +8,7 @@ require (
 	golang.org/x/oauth2 v0.30.0
 	gopkg.in/validator.v2 v2.0.1
 	k8s.io/api v0.33.3
-	k8s.io/apimachinery v0.33.3
+	k8s.io/apimachinery v0.35.0
 	k8s.io/client-go v0.33.3
 	k8s.io/klog/v2 v2.130.1
 	sigs.k8s.io/controller-runtime v0.21.0
