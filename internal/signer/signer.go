@@ -222,10 +222,12 @@ func (o *czertainlySigner) Sign(ctx context.Context, cr signer.CertificateReques
 
 	l.Info(fmt.Sprintf("Connected to server version: %s", coreInfoResponseDto.App.Version))
 
-	_, _, csrBytes, err := cr.GetRequest()
+	details, err := cr.GetCertificateDetails()
 	if err != nil {
 		return nil, err
 	}
+
+	csrBytes := details.CSR
 
 	l.Info(fmt.Sprintf("Processing CSR: %s", string(csrBytes)))
 

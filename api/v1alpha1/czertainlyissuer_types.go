@@ -24,6 +24,10 @@ type CzertainlyIssuer struct {
 	Status v1alpha1.IssuerStatus `json:"status,omitempty"`
 }
 
+func (vi *CzertainlyIssuer) GetConditions() []metav1.Condition {
+	return vi.Status.Conditions
+}
+
 // IssuerSpec defines the desired state of SampleIssuer
 type IssuerSpec struct {
 	// ApiUrl is the URL to access CZERTAINLY platform API,

@@ -25,6 +25,10 @@ type CzertainlyClusterIssuer struct {
 	Status v1alpha1.IssuerStatus `json:"status,omitempty"`
 }
 
+func (vi *CzertainlyClusterIssuer) GetConditions() []metav1.Condition {
+	return vi.Status.Conditions
+}
+
 func (vi *CzertainlyClusterIssuer) GetStatus() *v1alpha1.IssuerStatus {
 	return &vi.Status
 }
