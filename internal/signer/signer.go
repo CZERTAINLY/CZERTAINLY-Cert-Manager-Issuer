@@ -8,6 +8,11 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"net"
+	"net/http"
+	"strings"
+	"time"
+
 	czertainlyissuerapi "github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer/api/v1alpha1"
 	"github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer/internal/controllers"
 	"github.com/CZERTAINLY/CZERTAINLY-Cert-Manager-Issuer/internal/signer/czertainly"
@@ -15,11 +20,8 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 	corev1 "k8s.io/api/core/v1"
-	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"strings"
-	"time"
 )
 
 type czertainlySigner struct {
@@ -29,6 +31,57 @@ type czertainlySigner struct {
 	raProfileName string
 
 	k8sClient client.Client
+}
+
+func hardenedTransport(tlsConfig *tls.Config, httpTransport *czertainlyissuerapi.HttpTransport) *http.Transport {
+	dialTimeout := defaultDialTimeout
+	dialKeepAlive := defaultDialKeepAlive
+	tlsHandshakeTimeout := defaultTLSHandshakeTimeout
+	responseHeaderTimeout := defaultResponseHeaderTimeout
+	idleConnTimeout := defaultIdleConnTimeout
+	expectContinueTimeout := defaultExpectContinueTimeout
+	maxIdleConns := defaultMaxIdleConns
+	maxIdleConnsPerHost := defaultMaxIdleConnsPerHost
+
+	if httpTransport != nil {
+		if httpTransport.DialTimeout != nil {
+			dialTimeout = httpTransport.DialTimeout.Duration
+		}
+		if httpTransport.DialKeepAlive != nil {
+			dialKeepAlive = httpTransport.DialKeepAlive.Duration
+		}
+		if httpTransport.TLSHandshakeTimeout != nil {
+			tlsHandshakeTimeout = httpTransport.TLSHandshakeTimeout.Duration
+		}
+		if httpTransport.ResponseHeaderTimeout != nil {
+			responseHeaderTimeout = httpTransport.ResponseHeaderTimeout.Duration
+		}
+		if httpTransport.IdleConnTimeout != nil {
+			idleConnTimeout = httpTransport.IdleConnTimeout.Duration
+		}
+		if httpTransport.ExpectContinueTimeout != nil {
+			expectContinueTimeout = httpTransport.ExpectContinueTimeout.Duration
+		}
+		if httpTransport.MaxIdleConns != nil {
+			maxIdleConns = *httpTransport.MaxIdleConns
+		}
+		if httpTransport.MaxIdleConnsPerHost != nil {
+			maxIdleConnsPerHost = *httpTransport.MaxIdleConnsPerHost
+		}
+	}
+
+	return &http.Transport{
+		TLSClientConfig:       tlsConfig,
+		Proxy:                 http.ProxyFromEnvironment,
+		DialContext:           (&net.Dialer{Timeout: dialTimeout, KeepAlive: dialKeepAlive}).DialContext,
+		TLSHandshakeTimeout:   tlsHandshakeTimeout,
+		ResponseHeaderTimeout: responseHeaderTimeout, // avoids "awaiting headers" hangs
+		ExpectContinueTimeout: expectContinueTimeout,
+		IdleConnTimeout:       idleConnTimeout,
+		MaxIdleConns:          maxIdleConns,
+		MaxIdleConnsPerHost:   maxIdleConnsPerHost,
+		ForceAttemptHTTP2:     true,
+	}
 }
 
 func CzertainlyHealthCheckerFromIssuerAndSecretData(ctx context.Context, issuerSpec *czertainlyissuerapi.IssuerSpec, authSecret corev1.Secret, caBundleSecretData map[string][]byte) (controllers.HealthChecker, error) {
@@ -73,43 +126,49 @@ func createHttpClient(ctx context.Context, issuerSpec *czertainlyissuerapi.Issue
 		return nil, err
 	}
 
+	tr := hardenedTransport(tlsConfig, issuerSpec.HttpTransport)
+	clientTimeout := defaultClientTimeout
+	if issuerSpec.HttpTransport != nil && issuerSpec.HttpTransport.ClientTimeout != nil {
+		clientTimeout = issuerSpec.HttpTransport.ClientTimeout.Duration
+	}
+
+	base := &http.Client{
+		Transport: tr,
+		Timeout:   clientTimeout, // overall safety net
+	}
+
 	switch authSecret.Type {
 	case corev1.SecretTypeTLS:
 		cert, err := tls.X509KeyPair(authSecret.Data["tls.crt"], authSecret.Data["tls.key"])
 		if err != nil {
 			return nil, err
 		}
-		tlsConfig.Certificates = []tls.Certificate{cert}
-
-		return &http.Client{
-			Transport: &http.Transport{TLSClientConfig: tlsConfig},
-			Timeout:   10 * time.Second,
-		}, nil
+		tr.TLSClientConfig.Certificates = []tls.Certificate{cert}
+		return base, nil
 
 	case corev1.SecretTypeOpaque:
-		config := &clientcredentials.Config{
+		scopesRaw := string(authSecret.Data["scopes"])
+		var scopes []string
+		if s := strings.TrimSpace(scopesRaw); s != "" {
+			scopes = strings.Fields(s) // robust split (handles multi-spaces)
+		}
+		cfg := &clientcredentials.Config{
 			ClientID:     string(authSecret.Data["client_id"]),
 			ClientSecret: string(authSecret.Data["client_secret"]),
 			TokenURL:     string(authSecret.Data["token_url"]),
-			Scopes:       strings.Split(string(authSecret.Data["scopes"]), " "),
+			Scopes:       scopes,
+			AuthStyle:    oauth2.AuthStyleInParams, // often safer behind proxies
 		}
 
-		tlsTransport := &http.Transport{TLSClientConfig: tlsConfig}
-
-		baseClient := &http.Client{
-			Transport: tlsTransport,
-			Timeout:   10 * time.Second,
-		}
-
-		// put it in the context so client credentials can see it
-		ctx = context.WithValue(ctx, oauth2.HTTPClient, baseClient)
+		// Let token fetch use the hardened base client
+		ctx = context.WithValue(ctx, oauth2.HTTPClient, base)
 
 		return &http.Client{
 			Transport: &oauth2.Transport{
-				Base:   tlsTransport,
-				Source: config.TokenSource(ctx),
+				Base:   tr,
+				Source: cfg.TokenSource(ctx),
 			},
-			Timeout: 10 * time.Second,
+			Timeout: clientTimeout,
 		}, nil
 
 	default:

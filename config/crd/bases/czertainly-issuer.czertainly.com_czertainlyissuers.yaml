@@ -86,6 +86,59 @@ spec:
                   'cluster resource namespace', which is set as a flag on the controller
                   component (and defaults to the namespace that the controller runs in).
                 type: string
+              httpTransport:
+                description: |-
+                  HttpTransport contains settings for HTTP client and transport used to
+                  communicate with CZERTAINLY platform API and can be used to override
+                  default timeouts and connection settings.
+                properties:
+                  clientTimeout:
+                    description: |-
+                      ClientTimeout specifies a time limit for requests made. The timeout includes connection time, any redirects,
+                      and reading the response body. A Timeout of zero means no timeout. (default: 30s)
+                    type: string
+                  dialKeepAlive:
+                    description: 'DialKeepAlive specifies the interval between keep-alive
+                      probes for an active network connection. (default: 30s)'
+                    type: string
+                  dialTimeout:
+                    description: 'DialTimeout is the maximum amount of time a dial
+                      will wait for a connect to complete. (default: 5s)'
+                    type: string
+                  expectContinueTimeout:
+                    description: |-
+                      ExpectContinueTimeout, if non-zero, specifies the amount of time to wait for a server's first response headers
+                      after fully writing the request headers if the request has an "Expect: 100-continue" header. Zero means
+                      no timeout and causes the body to be sent immediately, without waiting for the server to approve.
+                      This time does not include the time to send the request header. (default: 1s)
+                    type: string
+                  idleConnTimeout:
+                    description: |-
+                      IdleConnTimeout is the maximum amount of time an idle (keep-alive) connection will remain idle before closing
+                      itself. Zero means no limit. (default: 90s)
+                    type: string
+                  maxIdleConns:
+                    description: |-
+                      MaxIdleConns controls the maximum number of idle (keep-alive) connections across all hosts.
+                      Zero means no limit. (default: 200)
+                    type: integer
+                  maxIdleConnsPerHost:
+                    description: |-
+                      MaxIdleConnsPerHost, if non-zero, controls the maximum idle (keep-alive) connections to keep
+                      per-host. (default: 20)
+                    type: integer
+                  responseHeaderTimeout:
+                    description: |-
+                      ResponseHeaderTimeout, if non-zero, specifies the amount of time to wait for a server's response headers
+                      after fully writing the request (including its body, if any). This time does not include the time to read
+                      the response body. (default: 20s)
+                    type: string
+                  tlsHandshakeTimeout:
+                    description: |-
+                      TLSHandshakeTimeout specifies the maximum amount of time to wait for a TLS handshake.
+                      Zero means no timeout. (default: 5s)
+                    type: string
+                type: object
               raProfileName:
                 description: |-
                   RaProfileName is the name of the RA profile to use when managing certificates.
