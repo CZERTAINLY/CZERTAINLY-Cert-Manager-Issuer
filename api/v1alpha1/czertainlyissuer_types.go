@@ -104,8 +104,8 @@ type HttpTransport struct {
 	// +optional
 	MaxIdleConns *int `json:"maxIdleConns,omitempty"`
 
-	// MaxIdleConnsPerHost, if non-zero, controls the maximum idle (keep-alive) connections to keep per-host.
-	// If zero, default is used. (default: 2)
+	// MaxIdleConnsPerHost, if non-zero, controls the maximum idle (keep-alive) connections to keep
+	// per-host. (default: 20)
 	// +optional
 	MaxIdleConnsPerHost *int `json:"maxIdleConnsPerHost,omitempty"`
 

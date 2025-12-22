@@ -127,8 +127,8 @@ spec:
                       type: integer
                     maxIdleConnsPerHost:
                       description: |-
-                        MaxIdleConnsPerHost, if non-zero, controls the maximum idle (keep-alive) connections to keep per-host.
-                        If zero, default is used. (default: 2)
+                        MaxIdleConnsPerHost, if non-zero, controls the maximum idle (keep-alive) connections to keep
+                        per-host. (default: 20)
                       type: integer
                     responseHeaderTimeout:
                       description: |-
