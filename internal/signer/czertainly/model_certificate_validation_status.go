@@ -57,7 +57,7 @@ func (v *CertificateValidationStatus) UnmarshalJSON(src []byte) error {
 		}
 	}
 
-	return fmt.Errorf("%+v is not a valid CertificateValidationStatus", value)
+	*v = enumTypeValue; return nil
 }
 
 // NewCertificateValidationStatusFromValue returns a pointer to a valid CertificateValidationStatus

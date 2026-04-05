@@ -49,7 +49,7 @@ func (v *KeyType) UnmarshalJSON(src []byte) error {
 		}
 	}
 
-	return fmt.Errorf("%+v is not a valid KeyType", value)
+	*v = enumTypeValue; return nil
 }
 
 // NewKeyTypeFromValue returns a pointer to a valid KeyType

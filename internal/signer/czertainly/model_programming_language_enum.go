@@ -123,7 +123,7 @@ func (v *ProgrammingLanguageEnum) UnmarshalJSON(src []byte) error {
 		}
 	}
 
-	return fmt.Errorf("%+v is not a valid ProgrammingLanguageEnum", value)
+	*v = enumTypeValue; return nil
 }
 
 // NewProgrammingLanguageEnumFromValue returns a pointer to a valid ProgrammingLanguageEnum

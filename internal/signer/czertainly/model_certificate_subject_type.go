@@ -49,7 +49,7 @@ func (v *CertificateSubjectType) UnmarshalJSON(src []byte) error {
 		}
 	}
 
-	return fmt.Errorf("%+v is not a valid CertificateSubjectType", value)
+	*v = enumTypeValue; return nil
 }
 
 // NewCertificateSubjectTypeFromValue returns a pointer to a valid CertificateSubjectType

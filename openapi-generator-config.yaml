@@ -8,5 +8,6 @@ additionalProperties:
   packageName: czertainly
   isGoSubmodule: false
   disallowAdditionalPropertiesIfNotPresent: false
+  enumUnknownDefaultCase: true
   enumClassPrefix: true
   withGoMod: false

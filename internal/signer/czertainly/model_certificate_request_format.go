@@ -45,7 +45,7 @@ func (v *CertificateRequestFormat) UnmarshalJSON(src []byte) error {
 		}
 	}
 
-	return fmt.Errorf("%+v is not a valid CertificateRequestFormat", value)
+	*v = enumTypeValue; return nil
 }
 
 // NewCertificateRequestFormatFromValue returns a pointer to a valid CertificateRequestFormat

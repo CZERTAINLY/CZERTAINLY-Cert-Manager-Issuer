@@ -47,7 +47,7 @@ func (v *CertificateProtocol) UnmarshalJSON(src []byte) error {
 		}
 	}
 
-	return fmt.Errorf("%+v is not a valid CertificateProtocol", value)
+	*v = enumTypeValue; return nil
 }
 
 // NewCertificateProtocolFromValue returns a pointer to a valid CertificateProtocol

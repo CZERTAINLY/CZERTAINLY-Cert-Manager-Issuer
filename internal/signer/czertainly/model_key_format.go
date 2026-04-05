@@ -51,7 +51,7 @@ func (v *KeyFormat) UnmarshalJSON(src []byte) error {
 		}
 	}
 
-	return fmt.Errorf("%+v is not a valid KeyFormat", value)
+	*v = enumTypeValue; return nil
 }
 
 // NewKeyFormatFromValue returns a pointer to a valid KeyFormat
