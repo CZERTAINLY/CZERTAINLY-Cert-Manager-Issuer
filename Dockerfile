@@ -29,7 +29,7 @@ ENV GO111MODULE=on
 # re-compile when the version changes
 RUN go build -mod=readonly ./...
 
-ARG VERSION
+ARG VERSION=dev
 
 # Build
 RUN go build \
