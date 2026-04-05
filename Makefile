@@ -267,3 +267,4 @@ openapi-generate: ## Generate the OpenAPI client
       --input-spec https://raw.githubusercontent.com/CZERTAINLY/CZERTAINLY-Interface-Documentation/refs/heads/gh-pages/${API_VERSION}/doc-openapi-cert-manager.yaml \
       --config openapi-generator-config.yaml
 	patch -p0 < openapi-patch/openapi-2.15.0.patch
+	sed -i '' 's/return fmt.Errorf("%+v is not a valid .*", value)/*v = enumTypeValue; return nil/' internal/signer/czertainly/model_*.go

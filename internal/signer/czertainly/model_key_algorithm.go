@@ -59,7 +59,7 @@ func (v *KeyAlgorithm) UnmarshalJSON(src []byte) error {
 		}
 	}
 
-	return fmt.Errorf("%+v is not a valid KeyAlgorithm", value)
+	*v = enumTypeValue; return nil
 }
 
 // NewKeyAlgorithmFromValue returns a pointer to a valid KeyAlgorithm

@@ -53,7 +53,7 @@ func (v *KeyState) UnmarshalJSON(src []byte) error {
 		}
 	}
 
-	return fmt.Errorf("%+v is not a valid KeyState", value)
+	*v = enumTypeValue; return nil
 }
 
 // NewKeyStateFromValue returns a pointer to a valid KeyState

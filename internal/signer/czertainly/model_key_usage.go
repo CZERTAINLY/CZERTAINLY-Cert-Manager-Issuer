@@ -53,7 +53,7 @@ func (v *KeyUsage) UnmarshalJSON(src []byte) error {
 		}
 	}
 
-	return fmt.Errorf("%+v is not a valid KeyUsage", value)
+	*v = enumTypeValue; return nil
 }
 
 // NewKeyUsageFromValue returns a pointer to a valid KeyUsage

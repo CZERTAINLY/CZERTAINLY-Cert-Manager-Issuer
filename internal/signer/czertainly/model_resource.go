@@ -129,7 +129,6 @@ var AllowedResourceEnumValues = []Resource{
 	"cmpTransactions",
 	"endEntityProfiles",
 	"authenticationProviders",
-	"oids",
 }
 
 func (v *Resource) UnmarshalJSON(src []byte) error {
@@ -146,7 +145,7 @@ func (v *Resource) UnmarshalJSON(src []byte) error {
 		}
 	}
 
-	return fmt.Errorf("%+v is not a valid Resource", value)
+	*v = enumTypeValue; return nil
 }
 
 // NewResourceFromValue returns a pointer to a valid Resource

@@ -47,7 +47,7 @@ func (v *AttributeConstraintType) UnmarshalJSON(src []byte) error {
 		}
 	}
 
-	return fmt.Errorf("%+v is not a valid AttributeConstraintType", value)
+	*v = enumTypeValue; return nil
 }
 
 // NewAttributeConstraintTypeFromValue returns a pointer to a valid AttributeConstraintType

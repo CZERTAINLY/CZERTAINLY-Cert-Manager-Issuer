@@ -47,7 +47,7 @@ func (v *ComplianceRuleStatus) UnmarshalJSON(src []byte) error {
 		}
 	}
 
-	return fmt.Errorf("%+v is not a valid ComplianceRuleStatus", value)
+	*v = enumTypeValue; return nil
 }
 
 // NewComplianceRuleStatusFromValue returns a pointer to a valid ComplianceRuleStatus

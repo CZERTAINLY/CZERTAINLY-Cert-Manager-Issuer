@@ -47,7 +47,7 @@ func (v *AttributeValueTarget) UnmarshalJSON(src []byte) error {
 		}
 	}
 
-	return fmt.Errorf("%+v is not a valid AttributeValueTarget", value)
+	*v = enumTypeValue; return nil
 }
 
 // NewAttributeValueTargetFromValue returns a pointer to a valid AttributeValueTarget

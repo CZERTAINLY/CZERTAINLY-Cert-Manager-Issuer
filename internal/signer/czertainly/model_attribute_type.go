@@ -51,7 +51,7 @@ func (v *AttributeType) UnmarshalJSON(src []byte) error {
 		}
 	}
 
-	return fmt.Errorf("%+v is not a valid AttributeType", value)
+	*v = enumTypeValue; return nil
 }
 
 // NewAttributeTypeFromValue returns a pointer to a valid AttributeType
