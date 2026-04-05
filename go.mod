@@ -5,7 +5,7 @@ go 1.25.5
 require (
 	github.com/cert-manager/cert-manager v1.19.2
 	github.com/cert-manager/issuer-lib v0.9.0
-	golang.org/x/oauth2 v0.34.0
+	golang.org/x/oauth2 v0.36.0
 	gopkg.in/validator.v2 v2.0.1
 	k8s.io/api v0.35.0
 	k8s.io/apimachinery v0.35.0
