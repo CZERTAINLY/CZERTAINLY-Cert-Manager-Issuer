@@ -54,7 +54,7 @@ jobs:
 
       - name: Build + push (amd64) by digest only (no tags)
         id: build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ${{ env.DOCKERFILE }}
@@ -115,7 +115,7 @@ jobs:
 
       - name: Build + push (arm64) by digest only (no tags)
         id: build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ${{ env.DOCKERFILE }}
